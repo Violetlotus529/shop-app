@@ -73,13 +73,14 @@ bin/dev
 ```mermaid
 erDiagram
   users {
-                 id     uuid
-              email     string
-    password_digest     string
-          full_name     string
-              phone     string
- default_address_id     uuid
-  created_at/update     datetime
+    uuid id
+    string email
+    string password_digest
+    string full_name
+    string phone
+    uuid default_address_id
+    datetime created_at
+    datetime updated_at
   }
   addresses {
                  id     uuid
