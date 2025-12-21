@@ -72,16 +72,121 @@ bin/dev
 ```
 ```mermaid
 erDiagram
-  users {
-    uuid id
+  USERS {
+    uuid id PK
     string email
     string password_digest
     string full_name
     string phone
-    uuid default_address_id
+    boolean is_admin
     datetime created_at
     datetime updated_at
   }
-  addresses {
-                 id     uuid
-```
+
+  ADDRESSES {
+    uuid id PK
+    uuid user_id FK
+    string postal_code
+    string prefecture
+    string city
+    string address_line1
+    string address_line2
+    string phone
+    boolean is_default
+    datetime created_at
+    datetime updated_at
+  }
+
+  PRODUCTS {
+    uuid id PK
+    string name
+    text description
+    integer price_cents
+    boolean published
+    boolean deleted
+    datetime created_at
+    datetime updated_at
+  }
+
+  PRODUCT_VARIANTS {
+    uuid id PK
+    uuid product_id FK
+    string sku
+    string color
+    string size
+    integer stock
+    boolean deleted
+    datetime created_at
+    datetime updated_at
+  }
+
+  CARTS {
+    uuid id PK
+    uuid user_id FK
+    string guest_token
+    datetime created_at
+    datetime updated_at
+  }
+
+  CART_ITEMS {
+    uuid id PK
+    uuid cart_id FK
+    uuid product_variant_id FK
+    integer quantity
+    datetime created_at
+    datetime updated_at
+  }
+
+  ORDERS {
+    uuid id PK
+    uuid user_id FK
+    uuid address_id FK
+    string email
+    string full_name
+    integer shipping_fee_cents
+    integer total_cents
+    string status
+    datetime paid_at
+    datetime shipped_at
+    datetime completed_at
+    datetime canceled_at
+    datetime created_at
+    datetime updated_at
+  }
+
+  ORDER_ITEMS {
+    uuid id PK
+    uuid order_id FK
+    uuid product_variant_id FK
+    integer unit_price_cents
+    integer quantity
+    integer subtotal_cents
+    datetime created_at
+    datetime updated_at
+  }
+
+  PAYMENTS {
+    uuid id PK
+    uuid order_id FK
+    string provider
+    string stripe_checkout_session_id
+    string stripe_payment_intent_id
+    integer amount_cents
+    string status
+    datetime paid_at
+    datetime created_at
+    datetime updated_at
+  }
+
+  USERS ||--o{ ADDRESSES : has
+  USERS ||--o{ CARTS : has
+  CARTS ||--o{ CART_ITEMS : contains
+  PRODUCTS ||--o{ PRODUCT_VARIANTS : has
+  PRODUCT_VARIANTS ||--o{ CART_ITEMS : in
+  USERS ||--o{ ORDERS : places
+  ADDRESSES ||--o{ ORDERS : used_for
+  ORDERS ||--o{ ORDER_ITEMS : includes
+  PRODUCT_VARIANTS ||--o{ ORDER_ITEMS : sold_as
+  ORDERS ||--o{ PAYMENTS : paid_by
+
+    
