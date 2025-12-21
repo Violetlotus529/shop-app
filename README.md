@@ -1,3 +1,4 @@
+Demo：
 # A single-store e-commerce application built with Ruby on Rails.
 
 ## Overview
@@ -39,3 +40,4 @@ with or without an account using Stripe Checkout.
 - Soft delete is used (logical deletion)
 - Publish/unpublish is supported (visible control independent of deletion)
 - Admin pages are isolated under `/admin` and require admin authentication
+
