@@ -41,3 +41,43 @@ with or without an account using Stripe Checkout.
 - Publish/unpublish is supported (visible control independent of deletion)
 - Admin pages are isolated under `/admin` and require admin authentication
 
+## Features
+- 
+
+## Tech Stack
+- Ruby 3.2.2
+- Ruby on Rails 7.1
+- PostgreSQL
+- CSS / JavaScript
+- Render (deployment)
+
+## Notes
+- 
+
+## Local Setup
+```bash
+bundle install
+rails db:create db:migrate
+rails s
+```
+
+## Detailed Setup
+```bash
+git clone <your-repo-url>
+cd shop-app
+bundle install
+yarn install
+rails db:create db:migrate
+bin/dev
+```
+```mermaid
+erDiagram
+  users {
+    id: uuid
+    email: string
+    password_digest: string
+    full_name: string
+    phone: string
+    default_address_id: uuid
+    created_at/update: datetime
+  }
