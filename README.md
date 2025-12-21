@@ -1,5 +1,6 @@
-A single-store e-commerce application built with Ruby on Rails.
+# A single-store e-commerce application built with Ruby on Rails.
 
+## Overview
 This app is designed for a small apparel shop, allowing store staff to manage products,
 variants (color/size), inventory, and orders, while customers can purchase items
 with or without an account using Stripe Checkout.
