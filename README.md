@@ -78,9 +78,9 @@ erDiagram
     password_digest     string
           full_name     string
               phone     string
-    default_address_id  uuid
-    created_at/update   datetime
+ default_address_id     uuid
+  created_at/update     datetime
   }
   addresses {
                  id     uuid
-
+```
