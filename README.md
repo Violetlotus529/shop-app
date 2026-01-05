@@ -41,6 +41,8 @@ with or without an account using Stripe Checkout.
 - Publish/unpublish is supported (visible control independent of deletion)
 - Admin pages are isolated under `/admin` and require admin authentication
 
+### API & Data Flow
+- 
 ## Features
 - 
 
