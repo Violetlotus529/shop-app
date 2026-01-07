@@ -1,10 +1,10 @@
 Demo：
 # A single-store e-commerce application built with Ruby on Rails.
 
-## Overview
-This app is designed for a small apparel shop, allowing store staff to manage products,
-variants (color/size), inventory, and orders, while customers can purchase items
-with or without an account using Stripe Checkout.
+### Order Status Flow
+- Orders move forward-only through their lifecycle (e.g. `paid -> shipped -> completed`).
+- `canceled` is allowed only before shipping; after `shipped` cancellation is blocked.
+- Detailed state transition rules are documented in `docs/30-state-machines.md`.
 
 ## Design
 
@@ -80,6 +80,32 @@ with or without an account using Stripe Checkout.
 ドキュメント方針
 - README：全体方針（設計思想 / 主要ルール / 仕様の要点）
 - docs/：詳細（API設計 / 画面仕様 / 状態遷移）
+
+## Order Status State Machine
+unpaid → paid → processing → shipped → completed
+processing → canceled
+
+制約:
+- shipped 以降は canceled 不可
+- ステータス更新は注文詳細画面でのみ可能
+- canceled は paid / processing でのみ可能
+- API側で不正遷移は 400 / 422 で拒否
+
+## Inventory Constraints
+- stock >= 0 (負の値不可)
+- 在庫変更は管理画面の編集モードのみ
+- 支払い確定(Webhook)後に在庫減算
+- 在庫0 の場合は SOLD OUT 表示 (ユーザー側)
+
+## Product State
+active -> deleted
+deleted -> active (復元可能)
+
+制約:
+- 論理削除のため物理削除は行わない
+- deleted 状態の商品は一覧の "ゴミ箱" に表示
+- 編集操作は active のみ許可
+
 ## Features
 - 
 
