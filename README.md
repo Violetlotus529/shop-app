@@ -106,6 +106,116 @@ deleted -> active (復元可能)
 - deleted 状態の商品は一覧の "ゴミ箱" に表示
 - 編集操作は active のみ許可
 
+## 2. 管理画面側 API の具体例
+
+
+---------------------------------------------------------------
+### METHOD PATH
+概要:
+- （何をする API か 1〜2 行）
+
+認可:
+- 例）Admin only / 認証不要 / ログインユーザーのみ など
+
+URL:
+- Path Params:
+  - `:id` … 説明
+- Query Params:
+  - `status` (optional) … 説明
+
+Request Body (JSON):
+```json
+{
+  "キー": "型・意味をコメントで書く"
+}
+--------------------------------------------------------------
+
+
+### 2-1. 管理者ログイン
+```
+### POST /admin/login
+概要:
+- 管理者のログインを行う。
+
+認可:
+- 認証不要
+
+Request Body (JSON):
+```json
+{
+  "email": "admin@example.com",   // 管理者メールアドレス
+  "password": "password123"       // パスワード
+}
+```
+Response 200:
+```json
+{
+  "id": "admin-uuid",
+  "email": "admin@example.com",
+  "name": "Admin User",
+  "token": "jwt-or-session-token"
+}
+```
+### Status Codes
+- 200 OK: ログイン成功
+- 401 Unauthorized: 認証失敗(メール or パスワード不正)
+```
+### POST /admin/password/forgot
+概要:
+- パスワード再設定メールを送信する。
+
+認可:
+- 認証不要
+
+Request Bady（JSON）:
+```json
+{
+  "email": "admin@example.com"  // 管理者メールアドレス
+}
+```
+Response 200:
+```json
+{
+  "message": "パスワード再設定メールを送信しました。"
+}
+```
+### Status Codes
+- 200 OK: 成功
+- 404 NOT FOUND: メールアドレスが存在しない
+```
+### POST /admin/password/reset
+概要:
+- パスワード再設定を行う。
+
+認可:
+- 認証不要(reset_token の検証で代替)
+
+Request Bady(JSON):
+```json
+{
+  "token": "abcdef123456"  //resetメールに含めたトークン
+  "password": "newPassword123"  //新しいパスワード
+}
+```
+Response 200:
+```json
+{
+  "message": "パスワードを更新しました。"
+}
+```
+### Status Codes
+- 200 OK: 成功
+- 400 Bad Request: 入力値が不足または不正
+- 404 Not Found: リソースが存在しない
+- 422 Unprocessable Entity: バリデーション違反
+```
+失敗レスポンス例(404 Not Found) :
+```json
+{
+  "error": "INVALID_TOKEN",
+  "message": "パスワード再設定リンクが無効または期限切れです。"
+}
+```
 ## Features
 - 
 
