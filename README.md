@@ -106,23 +106,21 @@ deleted -> active (復元可能)
 - deleted 状態の商品は一覧の "ゴミ箱" に表示
 - 編集操作は active のみ許可
 
-### 2-1. 管理者ログイン
-```
-### POST /admin/login
+## POST /admin/login
 概要:
 - 管理者のログインを行う。
 
 認可:
 - 認証不要
 
-Request Body (JSON):
+### Request Body (JSON):
 ```json
 {
   "email": "admin@example.com",   // 管理者メールアドレス
   "password": "password123"       // パスワード
 }
 ```
-Response 200:
+### Response 200:
 ```json
 {
   "id": "admin-uuid",
@@ -135,20 +133,20 @@ Response 200:
 - 200 OK: ログイン成功
 - 401 Unauthorized: 認証失敗(メール or パスワード不正)
 
-### POST /admin/password/forgot
+## POST /admin/password/forgot
 概要:
 - パスワード再設定メールを送信する。
 
 認可:
 - 認証不要
 
-Request Bady（JSON）:
+### Request Bady（JSON）:
 ```json
 {
   "email": "admin@example.com"  // 管理者メールアドレス
 }
 ```
-Response 200:
+### Response 200:
 ```json
 {
   "message": "パスワード再設定メールを送信しました。"
@@ -158,21 +156,21 @@ Response 200:
 - 200 OK: 成功
 - 404 NOT FOUND: メールアドレスが存在しない
 
-### POST /admin/password/reset
+## POST /admin/password/reset
 概要:
 - パスワード再設定を行う。
 
 認可:
 - 認証不要(reset_token の検証で代替)
 
-Request Bady(JSON):
+### Request Bady(JSON):
 ```json
 {
   "token": "abcdef123456"  //resetメールに含めたトークン
   "password": "newPassword123"  //新しいパスワード
 }
 ```
-Response 200:
+### Response 200:
 ```json
 {
   "message": "パスワードを更新しました。"
@@ -184,24 +182,24 @@ Response 200:
 - 404 Not Found: リソースが存在しない
 - 422 Unprocessable Entity: バリデーション違反
 
-失敗レスポンス例(404 Not Found):
+### 失敗レスポンス例(404 Not Found):
 ```json
 {
   "error": "INVALID_TOKEN",
   "message": "パスワード再設定リンクが無効または期限切れです。"
 }
 ```
-### POST /admin/logout
+## POST /admin/logout
 概要:
 - 管理者のログアウトを行う。
 
 認可:
 - 管理者認証が必要(Authorizationヘッダーでトークンを送る)
 
-Request Header:
+### Request Header:
 Authorization: Bearer <token>
 
-Response 200:
+### Response 200:
 ```json
 {
   "message": "ログアウトしました。"
@@ -211,18 +209,17 @@ Response 200:
 - 200 OK: 成功
 - 401 Unauthorized: トークンが無効・期限切れ
 
-### GET /admin/products
+## GET /admin/products
 概要:
 - 商品一覧を取得する(検索・フィルタ・並び替え・含む)
 
 認可:
 - 管理者認証が必要
 
-Request header: 
+### Request header: 
 Authorization: Bearer <token>
 
-Query Parameters
-
+### Query Parameters
 ｜ パラメータ | 型     | 必須 | 説明 |
 |----------|--------|-----|------|
 ｜ q     | string | 任意 | 商品名・説明の部分一致検索  |
@@ -230,7 +227,7 @@ Query Parameters
 ｜ sort   | string | 任意 | update_at_desc / update_at_asc |
 ｜ page   | number | 任意 | ページ番号（１以上の整数）|
 
-Response 200:
+### Response 200:
 ```json
 {
   "products": [
