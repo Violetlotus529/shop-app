@@ -222,6 +222,7 @@ Request header:
 Authorization: Bearer <token>
 
 Query Parameters
+
 ｜ パラメータ | 型     | 必須 | 説明 |
 ｜----------|--------|-----|------|
 ｜ `q`      | string | 任意 | 商品名・説明の部分一致検索 |
