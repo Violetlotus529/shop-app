@@ -199,11 +199,8 @@ Response 200:
 - 管理者認証が必要(Authorizationヘッダーでトークンを送る)
 
 Request Header:
-```json
-{
-  "token": "Authorization": "Bearer"
-}
-```
+Authorization: Bearer <token>
+
 Response 200:
 ```json
 {
@@ -214,6 +211,46 @@ Response 200:
 - 200 OK: 成功
 - 401 Unauthorized: トークンが無効・期限切れ
 
+### GET /admin/products
+概要:
+- 商品一覧を取得する(検索・フィルタ・並び替え・含む)
+
+認可:
+- 管理者認証が必要
+
+Request header: 
+Authorization: Bearer <token>
+
+Query Parameters:
+｜ パラメータ | 型     | 必須 | 説明 |
+｜----------|--------|-----|------|
+｜ `q`      | string | 任意 | 商品名・説明の部分一致検索 |
+｜ `status` | string | 任意 | `all` / `published` / `unpushed` |
+｜ `sort`   | string | 任意 | `update_at_desc` / `update_at_asc` |
+｜ `page`   | number | 任意 | ページ番号（１以上の整数） |
+
+Response 200:
+{
+  "products": [
+    {
+      "id": "product-uuid",
+      "name": "Tシャツ",
+      "price": 2980,
+      "thumbnail_url": "/images/priducts/xxx.jpg",
+      "published": true,
+      "update_at": "2026-01-10T12:34:56Z"
+    }
+  ],
+  "pagination": {
+    "current": 1,
+    "total_pages": 3
+  }
+}
+
+### Status Codes:
+- 200 OK: 成功
+- 400 : 不正なクエリパラメータ
+- 401 Unauthorized: 認証トークンが無効 or 未提供
 ## Features
 - 
 
