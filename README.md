@@ -216,6 +216,29 @@ Response 200:
   "message": "パスワード再設定リンクが無効または期限切れです。"
 }
 ```
+### POST /admin/logout
+概要:
+- 管理者のログアウトを行う。
+
+認可:
+- 管理者認証が必要(Authorizationヘッダーでトークンを送る)
+
+Request Header:
+```json
+{
+  "token": "Authorization": "Bearer"
+}
+```
+Response 200:
+```json
+{
+  "message": "ログアウトしました。"
+}
+```
+### Status Codes
+- 200 OK: 成功
+- 401 Unauthorized: トークンが無効・期限切れ
+
 ## Features
 - 
 
