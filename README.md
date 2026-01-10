@@ -113,6 +113,9 @@ deleted -> active (復元可能)
 認可:
 - 認証不要
 
+### Headers
+Content-Type: application/json
+
 ### Request Body (JSON):
 ```json
 {
@@ -125,7 +128,6 @@ deleted -> active (復元可能)
 {
   "id": "admin-uuid",
   "email": "admin@example.com",
-  "name": "Admin User",
   "token": "jwt-or-session-token"
 }
 ```
@@ -139,6 +141,9 @@ deleted -> active (復元可能)
 
 認可:
 - 認証不要
+
+### Headers
+Content-Type: application/json
 
 ### Request Bady（JSON）:
 ```json
@@ -162,6 +167,9 @@ deleted -> active (復元可能)
 
 認可:
 - 認証不要(reset_token の検証で代替)
+
+### Headers
+Content-Type: application/json
 
 ### Request Bady(JSON):
 ```json
@@ -196,7 +204,8 @@ deleted -> active (復元可能)
 認可:
 - 管理者認証が必要(Authorizationヘッダーでトークンを送る)
 
-### Request Header:
+### Headers:
+Content-Type: application/json
 Authorization: Bearer <token>
 
 ### Response 200:
@@ -214,9 +223,10 @@ Authorization: Bearer <token>
 - 商品一覧を取得する(検索・フィルタ・並び替え・含む)
 
 認可:
-- 管理者認証が必要
+- 管理者認証が必要。
 
-### Request header: 
+### Headers: 
+Content-Type: application/json
 Authorization: Bearer <token>
 
 ### Query Parameters
@@ -250,6 +260,113 @@ Authorization: Bearer <token>
 - 200 OK: 成功
 - 400 : 不正なクエリパラメータ
 - 401 Unauthorized: 認証トークンが無効 or 未提供
+
+## POST /admin/products
+概要:
+- 商品を新規作成する。
+
+認可:
+- 管理者認証が必要。
+
+### Headers:
+Content-Type: application/json
+Authorization: Bearer <token>
+
+### Request Body(JSON):
+```json
+{
+  "name": "Tシャツ",
+  "description": "商品説明テキスト",
+  "category": "tops",
+  "price": 2980,
+  "image": "file-id-or-base64"
+}
+```
+### Response 201:
+```json
+{
+  "id": "product-uuid",
+  "message": "商品を作成しました。"
+}
+```
+### Status Codes:
+- 200 Created: 成功
+- 400 Bad Request: 必須項目不足・形式不正
+- 401 Unauthorized: 認証トークンが無効 or 未提供
+- 422 Unprocessable Entity: バリデーションエラー
+
+## PUT /admin/products/:id
+概要:
+- 既存の商品を編集する（全項目を編集する）。
+
+認可:
+- 管理者認証が必要。
+
+### Headers
+Content-Type: application/json
+Authorization: Bearer <token>
+
+### Path Parameters
+
+ パラメータ  | 型    | 必須   | 説明          |
+ ---------|-------|-------|--------------|
+  id      | string | 必須 | 商品ID（UUID） |
+
+### Request Body (JSON):
+```json
+{
+  "name": "Tシャツ",
+  "description": "商品説明テキスト",
+  "category": "tops",
+  "price": 2980,
+  "image": "file-id-or-base64",
+  "color": "BLK/WHT/GREY",
+  "size": "S/M/L",
+  "published": true
+}
+```
+### Response 200:
+```json
+{
+  "id": "product-uuid",
+  "name": "Tシャツ",
+  "description": "商品説明テキスト",
+  "category": "tops",
+  "price": 2980,
+  "image": "file-id-or-base64",
+  "color": "BLK/WHT/GREY",
+  "size": "S/M/L",
+  "published": true
+  "update_at": "2026-01-10T12:34:56Z",
+  "message": "商品を更新しました。"
+}
+```
+### Status Codes
+- 200 OK: 正常に更新された
+- 400 Bad Request: ボディの形成不要・必須項目不足
+- 401 Unauthorized: 認証トークンが無効 or 未提供
+- 404 Not Found: 指定されたIDの商品が存在しない
+- 422 Unprocessable Entity: バリデーションエラー（価格が負数など）
+
+##
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## Features
 - 
 
