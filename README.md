@@ -106,31 +106,6 @@ deleted -> active (復元可能)
 - deleted 状態の商品は一覧の "ゴミ箱" に表示
 - 編集操作は active のみ許可
 
-## 2. 管理画面側 API の具体例
-
-
----------------------------------------------------------------
-### METHOD PATH
-概要:
-- （何をする API か 1〜2 行）
-
-認可:
-- 例）Admin only / 認証不要 / ログインユーザーのみ など
-
-URL:
-- Path Params:
-  - `:id` … 説明
-- Query Params:
-  - `status` (optional) … 説明
-
-Request Body (JSON):
-```json
-{
-  "キー": "型・意味をコメントで書く"
-}
---------------------------------------------------------------
-
-
 ### 2-1. 管理者ログイン
 ```
 ### POST /admin/login
@@ -159,7 +134,7 @@ Response 200:
 ### Status Codes
 - 200 OK: ログイン成功
 - 401 Unauthorized: 認証失敗(メール or パスワード不正)
-``
+
 ### POST /admin/password/forgot
 概要:
 - パスワード再設定メールを送信する。
@@ -182,7 +157,7 @@ Response 200:
 ### Status Codes
 - 200 OK: 成功
 - 404 NOT FOUND: メールアドレスが存在しない
-``
+
 ### POST /admin/password/reset
 概要:
 - パスワード再設定を行う。
@@ -209,7 +184,7 @@ Response 200:
 - 404 Not Found: リソースが存在しない
 - 422 Unprocessable Entity: バリデーション違反
 ```
-失敗レスポンス例(404 Not Found) :
+失敗レスポンス例(404 Not Found):
 ```json
 {
   "error": "INVALID_TOKEN",
