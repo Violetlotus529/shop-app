@@ -220,12 +220,12 @@ Authorization: Bearer <token>
 Authorization: Bearer <token>
 
 ### Query Parameters
-｜ パラメータ  | 型     | 必須 | 説明 |
-|-----------|--------|-----|------|
-｜ `q`      | string | 任意 | 商品名・説明の部分一致検索  |
-｜ `status` | string | 任意 | all / published / unpushed |
-｜ `sort`   | string | 任意 | update_at_desc / update_at_asc |
-｜ `page`   | number | 任意 | ページ番号（１以上の整数）|
+ パラメータ  | 型     | 必須 | 説明 |
+-----------|--------|-----|------|
+ `q`      | string | 任意 | 商品名・説明の部分一致検索  |
+ `status` | string | 任意 | all / published / unpushed |
+ `sort`   | string | 任意 | update_at_desc / update_at_asc |
+ `page`   | number | 任意 | ページ番号（１以上の整数）|
 
 ### Response 200:
 ```json
