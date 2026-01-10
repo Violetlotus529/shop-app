@@ -159,7 +159,7 @@ Response 200:
 ### Status Codes
 - 200 OK: ログイン成功
 - 401 Unauthorized: 認証失敗(メール or パスワード不正)
-```
+``
 ### POST /admin/password/forgot
 概要:
 - パスワード再設定メールを送信する。
@@ -182,7 +182,7 @@ Response 200:
 ### Status Codes
 - 200 OK: 成功
 - 404 NOT FOUND: メールアドレスが存在しない
-```
+``
 ### POST /admin/password/reset
 概要:
 - パスワード再設定を行う。
