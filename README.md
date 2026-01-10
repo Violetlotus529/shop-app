@@ -183,7 +183,7 @@ Response 200:
 - 400 Bad Request: 入力値が不足または不正
 - 404 Not Found: リソースが存在しない
 - 422 Unprocessable Entity: バリデーション違反
-```
+
 失敗レスポンス例(404 Not Found):
 ```json
 {
