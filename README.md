@@ -297,7 +297,7 @@ Authorization: Bearer <token>
 
 ## PUT /admin/products/:id
 概要:
-- 既存の商品を編集する（全項目を編集する）。
+- 商品本体・基本情報・バリアントをまとめて編集する。
 
 認可:
 - 管理者認証が必要。
@@ -320,10 +320,23 @@ Authorization: Bearer <token>
   "category": "tops",
   "price": 2980,
   "image": "file-id-or-base64",
-  "color": "BLK/WHT/GREY",
-  "size": "S/M/L",
-  "published": true
+  "published": true,
+  "variants": [
+    {
+      "id": "variant-uuid-1",
+      "color": "BLACK",
+      "size": "M",
+      "sku": "TSHIRTS-BLK-S"
+    },
+    {
+      "id": "variant-uuid-2",
+      "color": "WHITE",
+      "size": "L",
+      "sku": "TSHIRT-BLK-M"
+    }
+  ]
 }
+
 ```
 ### Response 200:
 ```json
@@ -334,21 +347,68 @@ Authorization: Bearer <token>
   "category": "tops",
   "price": 2980,
   "image": "file-id-or-base64",
-  "color": "BLK/WHT/GREY",
-  "size": "S/M/L",
-  "published": true
-  "update_at": "2026-01-10T12:34:56Z",
+  "published": true,
+  "variants": [
+    {
+      "id": "variant-uuid-1",
+      "color": "BLK",
+      "size": "S",
+      "sku": "TSHIRT-BLK-S"
+    },
+    {
+      "id": "variant-uuid-2",
+      "color": "BLK",
+      "size": "M",
+      "sku": "TSHIRT-BLK-M"
+    }
+  ],
+  "updated_at": "2026-01-10T12:34:56Z",
   "message": "商品を更新しました。"
 }
 ```
 ### Status Codes
 - 200 OK: 正常に更新された
-- 400 Bad Request: ボディの形成不要・必須項目不足
+- 400 Bad Request: JSON形成不正・必須項目不足
 - 401 Unauthorized: 認証トークンが無効 or 未提供
 - 404 Not Found: 指定されたIDの商品が存在しない
 - 422 Unprocessable Entity: バリデーションエラー（価格が負数など）
 
-##
+## PATCH /admin/products/:id/deleted
+概要:
+- 商品の論理削除フラグをON/OFFする（削除/復元トグリ）。
+- どの画面から呼んだかに関係なく、このAPIは「deleted を true/false にするだけ」。
+
+認可:
+- 管理者認証が必要
+
+### Headers
+Content-Type: application/json
+Authorization: Bearer <token>
+
+### Path Parameters
+ パラメータ  | 型     | 必須  | 説明         |
+ ---------|--------|------|--------------|
+ id       | string | 必須 | 商品ID（UUID） |
+
+### Request Bady(JSON):
+```json
+{
+  "deleted": true
+}
+```
+### Response 200:
+```json
+{
+  "id": "products-uuid",
+  "deleted": true,
+  "message": "商品を削除しました。"
+}
+```
+### Status Codes:
+- 200 OK: 正常に更新された
+- 400 Bad Request: JSON形式不正・必須項目不足
+- 401 Unauthorized: 認証トークンが無効 or 未提供
+- 404 Not Found: 指定されたIDの商品が存在しない
 
 
 
