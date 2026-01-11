@@ -410,7 +410,7 @@ Authorization: Bearer <token>
 - 401 Unauthorized: 認証トークンが無効 or 未提供
 - 404 Not Found: 指定されたIDの商品が存在しない
 
-## GET/ admin/orders
+## GET /admin/orders
 概要:
 - 商品一覧を取得する（検索、フィルター、並び替えを含む）。
 
@@ -418,20 +418,45 @@ Authorization: Bearer <token>
 - 管理者認証が必要。
 
 ### Headers:
-- Content-Type: application/json
 - Authorization: Bearer <token>
 
-### Path Parameters
+### Query Parameters
  パラメータ     | 型    　　　　　　　　　　　　　　　　　 | 必須    | 説明                                |
  ------------|----------------|---------|------------------------------------|
- `q`         | string・number | 任意　 　| 商品名・注文番号                      |
- `sort`      | number         | 任意    | to~from                             |
- `status`    | string         | 任意    | peding/peid/shipped/compled/canceld |
+ q           | string         | 任意　 　| 注文番号、顧客名、メール検索            |
+ status      | string         | 任意    | pending / paid / processing / shipped / completed / canceled |
+ from        | string         | 任意    | 開始日（YYYY-MM-DD）                 |
+ to          | string         | 任意    | 終了日（YYYY-MM-DD）                 |
+ sort        | string         | 任意    | 　　　　　　　　　　　　　　　　　　　　　|
+ page        | number         | 任意    | ページ番号（１以上の整数）              |
  
 ### Response 200:
 ```json
 {
-  ""
+  "orders": [
+    {
+      "id": "order-uuid",
+      "order_number": "20260110-001",
+      "created_at": "2026-01-10T12:34:56Z",
+      "customer_type": "guest",
+      "customer_email": "user@example.com",
+      "customer_name": "Tanaka Taro",
+      "status": "paid",
+      "payment_method": "credit",
+      "item_count": 2,
+      "total_amount": 2980
+    }
+  ],
+  "pagination": {
+    "current": 1,
+    "total_pages": 3
+  }
+}
+```
+### Statsu Codes:
+- 200 OK: 成功
+- 401 Unauthorized: トークンが無効 or 未提供
+
 
 
 
