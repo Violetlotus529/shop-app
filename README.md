@@ -423,11 +423,11 @@ Authorization: Bearer <token>
 ### Query Parameters
  パラメータ     | 型    　　　　　　　　　　　　　　　　　 | 必須    | 説明                                |
  ------------|----------------|---------|------------------------------------|
- q           | string         | 任意　 　| 注文番号、顧客名、メール検索            |
+ q           | string         | 任意　 　| 注文番号、顧客名、メールアドレスでの一部一致検索 |
  status      | string         | 任意    | pending / paid / processing / shipped / completed / canceled |
  from        | string         | 任意    | 開始日（YYYY-MM-DD）                 |
  to          | string         | 任意    | 終了日（YYYY-MM-DD）                 |
- sort        | string         | 任意    | 　　　　　　　　　　　　　　　　　　　　　|
+ sort        | string         | 任意    | created_at_desc　/ created_at_asc（注文日時の降順/昇順）　|
  page        | number         | 任意    | ページ番号（１以上の整数）              |
  
 ### Response 200:
