@@ -561,8 +561,8 @@ Authorization: Bearer <token>
 - 401 Unauthorized: トークンが無効・未提供
 - 404 Not Found: 注文が存在しない
 - 422 Unprocessable Entity:
-- Order Status & Transitions に反する戦意を要求した場合
-- 例: shipped/completed の注文に "canceled"を指定した場合　
+          - Order Status & Transitions に反する戦意を要求した場合
+          - 例: shipped/completed の注文に "canceled"を指定した場合　
 
 
   
