@@ -82,14 +82,37 @@ Demo：
 - docs/：詳細（API設計 / 画面仕様 / 状態遷移）
 
 ## Order Status State Machine
-unpaid → paid → processing → shipped → completed
+pending → paid → processing → shipped → completed
 processing → canceled
 
 制約:
 - shipped 以降は canceled 不可
-- ステータス更新は注文詳細画面でのみ可能
-- canceled は paid / processing でのみ可能
-- API側で不正遷移は 400 / 422 で拒否
+- ステータス更新は「管理画面の注文詳細」でのみ可能
+- canceled は pending / paid / processing でのみ可能
+- 不正なステータス遷移は API 側で拒否する
+
+## Order Status & Transitions
+
+利用ステータス:
+- pending
+- paid
+- processing
+- shipped
+- completed
+- canceled
+
+遷移フロー:
+- pending → paid        （Stripe 決済）
+- paid → processing     （バックエンドで自動）
+- processing → shipped  （管理画面）
+- shipped → completed   （管理画面）
+- processing → canceled （管理画面）
+
+禁止される遷移:
+- shipped / completed から canceled への変更
+- completed から processing / shipped への巻き戻し
+- pending / paid / processing 以外から canceled へ遷移
+
 
 ## Inventory Constraints
 - stock >= 0 (負の値不可)
@@ -444,7 +467,7 @@ Authorization: Bearer <token>
       "status": "paid",
       "payment_method": "credit",
       "item_count": 2,
-      "total_amount": 2980
+      "total_amount": 2980,
     }
   ],
   "pagination": {
@@ -456,6 +479,92 @@ Authorization: Bearer <token>
 ### Statsu Codes:
 - 200 OK: 成功
 - 401 Unauthorized: トークンが無効 or 未提供
+
+## GET /admin/orders/:id
+概要:
+- 注文の詳細を取得する（注文情報＋注文に含まれる商品一覧）。
+
+認可:
+- 管理者認証が必要。
+
+### Headers:
+- Authorization: Bearer <token>
+
+### Path Parameters:
+ パラメータ  | 型     | 必須 |  説明         |
+ ---------|--------|------|---------------|
+ id       | string | 必須 | 注文ID（UUID） |
+### Response 200:
+```json
+{
+  "id": "order-uuid",
+  "order_number": "20260110-001",
+  "status": "paid",
+  "payment_method": "credit",
+  "total_amount": 2980,
+  "item_count": 2,
+  "created_at": "2026-01-10T12:34:56Z",
+
+  "customer": {
+    "type": "guest",
+    "name": "Tanaka Taro",
+    "email": "user@example.com",
+    "address: "XX県 XX市 XX町 XXX-XX XXXマンション XXX",
+  },
+
+  "order_items": [
+    {
+      "product_id": "product-uuid",
+      "product_name": "Tシャツ",
+      "color": "BLK",
+      "size": "S",
+      "quantity": 2,
+      "unit_price": 1490,
+      "subtotal": 2980
+    }
+  ]
+}
+```
+### Status Codes:
+- 200 OK: 成功
+- 401 Unauthorized: トークンが無効・未提供
+- 404 Not Found: 注文が存在しない
+
+## PATCH /admin/orders/:id/status
+概要:
+- 注文ステータスを更新する。
+- Order Status & Transitions に定義されたルールに従い、不正な遷移は拒否する。
+
+認可:
+- 管理者認証が必要。
+
+### Headers
+- Content-Type: application/json
+- Authorization: Bearer <token>
+
+### Request Body (Json):
+```json
+{
+  "status": "shipped"
+}
+```
+### Response 200:
+```json
+{
+  "status": "shipped",
+  "message": "ステータスを更新しました。"
+}
+```
+### Status Codes:
+- 200 OK: 正常に更新された
+- 400 Bad Request: statusが欠落・定義外の値
+- 401 Unauthorized: トークンが無効・未提供
+- 404 Not Found: 注文が存在しない
+- 422 Unprocessable Entity: Order Status & Transitions に反する戦意を要求した場合
+  　　　　　　　　　　　　　　　（例）:shipped/completed の注文に "canceled"を指定した場合　
+
+
+  
 
 
 
