@@ -382,8 +382,8 @@ Authorization: Bearer <token>
 - 管理者認証が必要
 
 ### Headers
-Content-Type: application/json
-Authorization: Bearer <token>
+- Content-Type: application/json
+- Authorization: Bearer <token>
 
 ### Path Parameters
  パラメータ  | 型     | 必須  | 説明         |
@@ -409,6 +409,31 @@ Authorization: Bearer <token>
 - 400 Bad Request: JSON形式不正・必須項目不足
 - 401 Unauthorized: 認証トークンが無効 or 未提供
 - 404 Not Found: 指定されたIDの商品が存在しない
+
+## GET/ admin/orders
+概要:
+- 商品一覧を取得する（検索、フィルター、並び替えを含む）。
+
+認可:
+- 管理者認証が必要。
+
+### Headers:
+- Content-Type: application/json
+- Authorization: Bearer <token>
+
+### Path Parameters
+ パラメータ     | 型    　　　　　　　　　　　　　　　　　 | 必須    | 説明                                |
+ ------------|----------------|---------|------------------------------------|
+ `q`         | string・number | 任意　 　| 商品名・注文番号                      |
+ `sort`      | number         | 任意    | to~from                             |
+ `status`    | string         | 任意    | peding/peid/shipped/compled/canceld |
+ 
+### Response 200:
+```json
+{
+  ""
+
+
 
 
 
