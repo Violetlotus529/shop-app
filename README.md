@@ -562,8 +562,87 @@ Authorization: Bearer <token>
 - 404 Not Found: 注文が存在しない
 - 422 Unprocessable Entity:
 - Order Status & Transitions に反する戦意を要求した場合
-- 例: shipped/completed の注文に "canceled"を指定した場合　
+- 例: shipped/completed の注文に "canceled"を指定した場合
 
+## GET /admin/inventories
+概要:
+- バリアント（SKU）単位の在庫一覧を取得する（検索・フィルター・並び替えを含む）。
+
+認可:
+- 管理者認証が必要。
+
+### Headers:
+- Authorization: Bearer <token>
+
+### Query Parameters
+ パラメータ     | 型     | 必須  | 説明                                             |
+ ------------|--------|------|--------------------------------------------------|
+ q           | string | 任意 | 商品名 / カラー / サイズの部分一致検索                 |
+ stock_state | string | 任意 | all / in_stock / low / out_of_stock              |
+ sort        | string | 任意 | stock_desc / stock_asc(在庫数の降順/昇順)           |
+ page        | number | 任意 | ページ番号（１以上の整数）                            |
+
+### Response 200 :
+```json
+{
+  "variants": [
+    {
+      "id": "variant-uuid",
+      "product_name": "Tシャツ",
+      "color": "BLK",
+      "size": "S",
+      "stock": 10,
+      "update_at": "2026-01-10T12:34:56Z",
+    }
+  ],
+  "pagination": {
+    "current_page": 1,
+    "total_pages": 3
+  }
+}
+```
+### Status Codes:
+- 200 OK: 成功
+- 401 Uanuthorized: トークンが無効・未提供
+
+## PUT /admin/inventories
+概要:
+- 編集モード ON 中に変更された全ての在庫を一括更新する。
+
+認可:
+- 管理者認証が必要
+
+### Headers:
+- Content-Type: application/json
+- Authorization: Bearer <token>
+
+### Request Body (JSON):
+```json
+{
+  "updates": [
+    {
+      "id": "variant-uuid-1",
+      "stock": 15
+    },
+    {
+      "id": "variant-uuid-2",
+      "stock": 0
+    }
+  ]
+}
+```
+### Response 200:
+```json
+{
+  "updated_count": 2,
+  "message": "在庫を更新しました。"
+}
+```
+### Status Codes:
+- 200 OK: 正常に更新された
+- 400 Bad Request: JSON形式が不正
+- 401 Unauthorized: トークン無効・未提供
+- 422 Unprocessable Entity: 在庫数が負数などのバリデーション違反
 
   
 
