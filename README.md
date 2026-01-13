@@ -132,7 +132,6 @@ deleted -> active (復元可能)
 ```
 
 ### 4-2. Endpoint List
-### 4-2. Endpoint List
 
 | Group      | Method | Path                             | Summary                     |
 |-----------|--------|----------------------------------|-----------------------------|
