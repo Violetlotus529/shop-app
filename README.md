@@ -129,6 +129,24 @@ deleted -> active (復元可能)
 - deleted 状態の商品は一覧の "ゴミ箱" に表示
 - 編集操作は active のみ許可
 
+# API Common Rules
+
+- ALL timestamps are IS08601 format.
+- Authorization: Bearer <token> is required for all admin APIs except login/reset.
+- Error response structure:
+
+{
+  "error": "ERROR_CODE",
+  "message": "人間向けの説明"
+}
+
+- Pagination format:
+
+{
+  "current": 1,
+  "total_pages": 3
+}
+
 ## POST /admin/login
 概要:
 - 管理者のログインを行う。
@@ -313,7 +331,7 @@ Authorization: Bearer <token>
 }
 ```
 ### Status Codes:
-- 200 Created: 成功
+- 201 Created: 作成成功
 - 400 Bad Request: 必須項目不足・形式不正
 - 401 Unauthorized: 認証トークンが無効 or 未提供
 - 422 Unprocessable Entity: バリデーションエラー
@@ -400,27 +418,6 @@ Authorization: Bearer <token>
 ```json
 {
   "id": "product-uuid",
-  "name": "Tシャツ",
-  "description": "商品説明テキスト",
-  "category": "tops",
-  "price": 2980,
-  "image": "file-id-or-base64",
-  "published": true,
-  "variants": [
-    {
-      "id": "variant-uuid-1",
-      "color": "BLK",
-      "size": "S",
-      "sku": "TSHIRT-BLK-S"
-    },
-    {
-      "id": "variant-uuid-2",
-      "color": "BLK",
-      "size": "M",
-      "sku": "TSHIRT-BLK-M"
-    }
-  ],
-  "updated_at": "2026-01-10T12:34:56Z",
   "message": "商品を更新しました。"
 }
 ```
@@ -457,8 +454,7 @@ Authorization: Bearer <token>
 ### Response 200:
 ```json
 {
-  "id": "products-uuid",
-  "deleted": true,
+  "id": "product-uuid",
   "message": "商品を削除しました。"
 }
 ```
@@ -596,7 +592,7 @@ Authorization: Bearer <token>
 ### Response 200:
 ```json
 {
-  "status": "shipped",
+  "id": "order-uuid",
   "message": "ステータスを更新しました。"
 }
 ```
@@ -679,7 +675,7 @@ Authorization: Bearer <token>
 ### Response 200:
 ```json
 {
-  "updated_count": 2,
+  "update_count": 2,
   "message": "在庫を更新しました。"
 }
 ```
@@ -765,6 +761,17 @@ Authorization: Bearer <token>
 - 200 OK: 成功
 - 401 Unauthorized: トークンが無効・未提供
 - 404 Not Found: 対象IDが存在しない、または削除されていない
+
+# Error Codes
+- BAD_REQUEST            / JSONフォーマット不正、クエリ不正
+- UNAUTHORIZED           / トークンが無効 or 未提供
+- INVALID_CREDENTIALS    / ログイン失敗
+- INVALID_TOKEN          / パスワードリセットなどの token 不正
+- NOT_FOUND              / リソースが存在しない
+- VALIDATION_ERROR       / バリデーション違反
+- CONFLICT               / 整合性エラー・復元不可など
+
+
  
     
 
