@@ -8,7 +8,8 @@
 - [Figma - VioletLotus Admin](https://www.figma.com/design/FyMtVPAcQc0eArPW6eT7cV/EC%E3%82%B5%E3%82%A4%E3%83%88?node-id=0-1&t=r2dhyuTUfpk2hdAk-1)
 
 Admin Demo Login
-Email: 
+Email: admin@example.com
+Password: password123
 
 ## 2. Design
 
