@@ -114,7 +114,7 @@ deleted -> active (復元可能)
 
 ## 4. API Overview
 ### 4-1. API Common Rules
-- ALL timestamps are **IS08601** format.
+- ALL timestamps are **ISO8601** format.
 - `Authorization: Bearer <token>` is required for all admin APIs except login/reset.
 - Error response structure:
 ```json
@@ -214,7 +214,7 @@ Authorization: Bearer <token>
 ### Headers:
 Content-Type: application/json
 
-### Request Bady（JSON）:
+### Request Body（JSON）:
 ```json
 {
   "email": "admin@example.com"  // 管理者メールアドレス
@@ -240,7 +240,7 @@ Content-Type: application/json
 ### Headers:
 Content-Type: application/json
 
-### Request Bady(JSON):
+### Request Body(JSON):
 ```json
 {
   "token": "abcdef123456"  //resetメールに含めたトークン
@@ -296,7 +296,7 @@ Authorization: Bearer <token>
       "price": 2980,
       "thumbnail_url": "/images/products/xxx.jpg",
       "published": true,
-      "update_at": "2026-01-10T12:34:56Z"
+      "updated_at": "2026-01-10T12:34:56Z"
     }
   ],
   "pagination": {
@@ -453,7 +453,7 @@ Authorization: Bearer <token>
  ---------|--------|------|--------------|
  id       | string | 必須 | 商品ID（UUID） |
 
-### Request Bady(JSON):
+### Request Body(JSON):
 ```json
 {
   "deleted": true   //削除する場合は true, 復元する場合は false
@@ -584,7 +584,7 @@ Authorization: Bearer <token>
       "status": "paid",
       "payment_method": "credit",
       "item_count": 2,
-      "total_amount": 2980,
+      "total_amount": 2980
     }
   ],
   "pagination": {
@@ -688,8 +688,8 @@ Authorization: Bearer <token>
 - 401 Unauthorized: トークンが無効・未提供
 - 404 Not Found: 注文が存在しない
 - 422 Unprocessable Entity:
-- Order Status & Transitions に反する遷移を要求した場合
-- 例: shipped/completed の注文に "canceled"を指定した場合
+ - Order Status & Transitions に反する遷移を要求した場合
+ - 例: shipped/completed の注文に "canceled"を指定した場合
 
 ### 5-4. Inventory APIs
 #### GET /admin/inventories
@@ -720,7 +720,7 @@ Authorization: Bearer <token>
       "color": "BLK",
       "size": "S",
       "stock": 10,
-      "updated_at": "2026-01-10T12:34:56Z",
+      "updated_at": "2026-01-10T12:34:56Z"
     }
   ],
   "pagination": {
