@@ -318,6 +318,41 @@ Authorization: Bearer <token>
 - 401 Unauthorized: 認証トークンが無効 or 未提供
 - 422 Unprocessable Entity: バリデーションエラー
 
+## GET /admin/products/:id
+概要:
+- 商品の詳細を取得する（編集画面・プレビュー用）。
+
+認可:
+- 管理者認証が必要。
+
+### Headers
+- Authorization: Bearer <token>
+
+### Path Parameters
+ パラメータ | 型     | 必須 | 説明         |
+ --------|--------|-----|--------------|
+ id      | string | 必須 | 商品ID(UUID) |
+
+### Response 200:
+```json
+{
+  "id": "product-uuid",
+  "name": "Tシャツ",
+  "description": "商品説明テキスト",
+  "category": "tops",
+  "price": 2980,
+  "image_url":  "/image/xxx.jpg",
+  "published": true,
+  "variants": [
+    { "id": "variant-uuid-1", "color": "BLACK", "size": "M", "sku": "TSHIRT-BLK-M" }
+  ]
+}
+```
+### Status Codes:
+- 200 OK: 成功
+- 401 Unauthorized: 無効なトークン・未提供
+- 404 Not Found: 指定されたIDの商品が存在しない
+
 ## PUT /admin/products/:id
 概要:
 - 商品本体・基本情報・バリアントをまとめて編集する。
@@ -392,14 +427,14 @@ Authorization: Bearer <token>
 ### Status Codes
 - 200 OK: 正常に更新された
 - 400 Bad Request: JSON形成不正・必須項目不足
-- 401 Unauthorized: 認証トークンが無効 or 未提供
+- 401 Unauthorized: 認証トークンが無効・未提供
 - 404 Not Found: 指定されたIDの商品が存在しない
 - 422 Unprocessable Entity: バリデーションエラー（価格が負数など）
 
 ## PATCH /admin/products/:id/deleted
 概要:
-- 商品の論理削除フラグをON/OFFする（削除/復元トグリ）。
-- どの画面から呼んだかに関係なく、このAPIは「deleted を true/false にするだけ」。
+- 商品の論理削除フラグをON/OFFする（削除・復元トグリ）。
+- どの画面から呼んでも「deleted を true/false にするだけ」。
 
 認可:
 - 管理者認証が必要
@@ -416,7 +451,7 @@ Authorization: Bearer <token>
 ### Request Bady(JSON):
 ```json
 {
-  "deleted": true
+  "deleted": true   //削除する場合は true, 復元する場合は false
 }
 ```
 ### Response 200:
@@ -440,7 +475,7 @@ Authorization: Bearer <token>
 認可:
 - 管理者認証が必要。
 
-### Headers:
+### Headers
 - Authorization: Bearer <token>
 
 ### Query Parameters
@@ -499,22 +534,32 @@ Authorization: Bearer <token>
 {
   "id": "order-uuid",
   "order_number": "20260110-001",
-  "status": "paid",
+
+  "status": "processing",
   "payment_method": "credit",
   "total_amount": 2980,
   "item_count": 2,
+
   "created_at": "2026-01-10T12:34:56Z",
+  "paid_at": "2026-01-10T12:34:56Z",
+  "shipped_at": null,
+  "completed_at": null,
+  "canceled_at": null,
 
   "customer": {
     "type": "guest",
     "name": "Tanaka Taro",
     "email": "user@example.com",
-    "address: "XX県 XX市 XX町 XXX-XX XXXマンション XXX",
+    "postal_code": "XX県"
+    "prefecture": "XX市",
+    "city": "XX町",
+    "address_line1": "XXX-XX",
+    "address_line2": "XXXマンション XXX"
   },
 
   "order_items": [
     {
-      "product_id": "product-uuid",
+      "product_id": "product-uuid-1",
       "product_name": "Tシャツ",
       "color": "BLK",
       "size": "S",
@@ -528,7 +573,7 @@ Authorization: Bearer <token>
 ### Status Codes:
 - 200 OK: 成功
 - 401 Unauthorized: トークンが無効・未提供
-- 404 Not Found: 注文が存在しない
+- 404 Not Found: 指定されたIDの注文が存在しない
 
 ## PATCH /admin/orders/:id/status
 概要:
@@ -571,7 +616,7 @@ Authorization: Bearer <token>
 認可:
 - 管理者認証が必要。
 
-### Headers:
+### Headers
 - Authorization: Bearer <token>
 
 ### Query Parameters
@@ -643,6 +688,85 @@ Authorization: Bearer <token>
 - 400 Bad Request: JSON形式が不正
 - 401 Unauthorized: トークン無効・未提供
 - 422 Unprocessable Entity: 在庫数が負数などのバリデーション違反
+
+## GET /admin/trash/products
+概要:
+- `deleted = true` の商品だけを一覧取得する（検索・並び替えを含む）。
+
+認可:
+- 管理者認証が必要。
+
+### Headers
+Authorization: Bearer <token>
+
+### Query Parameters:
+ パラメータ | 型     | 必須 | 説明                              |
+ --------|--------|------|-----------------------------------|
+ q       | string | 任意 | 商品名での一部一致検索               |
+ sort    | string | 任意 | deleted_at_desc / deleted_at_asc |
+ page    | number | 任意 | ページ番号(１以上の整数)             |
+
+### Response 200:
+```json
+{
+  "products": [
+    {
+      "id": "uuid-1",
+      "name": "Tシャツ",
+      "published": true,
+      "deleted_at": "2026-01-10T12:34:56Z"
+    }
+  ],
+  "pagination": {
+    "current_page": 1,
+    "total_pages": 3
+  }
+}
+```
+### Status Codes:
+- 200 OK: 成功
+- 401 Unauthorized: トークンが無効・未提供
+- 404 Not Found: ページ範囲外もしくは該当商品が存在しない
+
+## GET /admin/trash/products/:id
+概要:
+- `deleted = true` の商品詳細を取得する。
+- `deleted = false`（すでに削除済み）の場合も 404 を返す。
+
+認可:
+- 管理者認証が必要
+
+### Headers
+- Authorization: Bearer <token>
+
+### Path Parameters:
+ パラメータ  | 型     | 必須 | 説明         |
+ ---------|--------|-----|--------------|
+ id       | string | 必須 | 商品ID(UUID) |
+
+### Response 200:
+```json
+{
+  "id": "product-uuid-1",
+  "name": "Tシャツ",
+  "description": "商品説明テキスト",
+  "category": "tops",
+  "price": 2980,
+  "image_url": "/images/xxx.jpg",
+  "deleted": true,
+  "deleted_at": "2026-01-10T12:34:56Z",
+  "variants": [
+    { "variant_id": "v1", "color": "BLK", "size": "S", "stock": 10 },
+    { "variant_id": "v2", "color": "WHT", "size": "M", "stick": 5 }
+  ]
+}
+```
+### Status Codes:
+- 200 OK: 成功
+- 401 Unauthorized: トークンが無効・未提供
+- 404 Not Found: 対象IDが存在しない、または削除されていない
+ 
+    
 
   
 
