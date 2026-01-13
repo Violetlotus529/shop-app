@@ -65,11 +65,6 @@
 - README：全体方針（設計思想 / 主要ルール / 仕様の要点）
 - docs/：詳細（API設計 / 画面仕様 / 状態遷移)
 
-### Order Status Flow
-- Orders move forward-only through their lifecycle (e.g. `paid -> shipped -> completed`).
-- `canceled` is allowed only before shipping; after `shipped` cancellation is blocked.
-- Detailed state transition rules are documented in `docs/30-state-machines.md`.
-
 ## 3. Domain Rules
 ### 3-1. Order Status State Machine
 pending → paid → processing → shipped → completed
