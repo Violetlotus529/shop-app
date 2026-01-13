@@ -65,6 +65,9 @@
 - README：全体方針（設計思想 / 主要ルール / 仕様の要点）
 - docs/：詳細（API設計 / 画面仕様 / 状態遷移)
 
+### 2-6. UI Design (Figma)
+[Figma - VioletLotus Admin](https://www.figma.com/design/FyMtVPAcQc0eArPW6eT7cV/EC%E3%82%B5%E3%82%A4%E3%83%88?node-id=0-1&t=r2dhyuTUfpk2hdAk-1)
+
 ## 3. Domain Rules
 ### 3-1. Order Status State Machine
 pending → paid → processing → shipped → completed
