@@ -1,47 +1,31 @@
-Demo：
-# A single-store e-commerce application built with Ruby on Rails.
+# VioletLotus EC Admin
 
-### Order Status Flow
-- Orders move forward-only through their lifecycle (e.g. `paid -> shipped -> completed`).
-- `canceled` is allowed only before shipping; after `shipped` cancellation is blocked.
-- Detailed state transition rules are documented in `docs/30-state-machines.md`.
+## 1. Overview
+- A single-store e-commerce application built with Ruby on Rails.
+- 単一店舗のアパレルEC向け管理画面付きアプリケーション。
+- Demo ----url
 
-## Design
+## 2. Design
 
-### Target Users
+### 2-1. Target Users
 - Admin: store owner / inventory staff (single role)
 - Customer: guest checkout or registered user
 
-### Checkout & Payment
+### 2-2. Checkout & Payment
 - Cart-based checkout
 - Payment: Stripe Checkout
 - Currency: JPY, tax-inclusive pricing
 - Shipping fee: fixed amount
 
-### Guest vs Registered Checkout
+### 2-3. Guest vs Registered Checkout
 - Guest checkout: allowed, but address is required at checkout
 - Registered user: address is collected at sign-up and reused at checkout
 
-### Product Variants
+### 2-4. Product Variants
 - Variant dimensions: color / size
 - Stock is managed per variant (SKU-level)
 
-### Inventory Update Policy
-- Stock is decremented after payment confirmation via Stripe webhook
-- If stock reaches 0, the UI displays SOLD OUT automatically
-
-### Order Status Flow
-- Forward-only transitions: `paid -> shipped -> completed`
-- `canceled` is allowed only before shipping
-  - allowed: before `shipped`
-  - blocked: after `shipped` (default rule)
-
-### Admin Policy
-- Soft delete is used (logical deletion)
-- Publish/unpublish is supported (visible control independent of deletion)
-- Admin pages are isolated under `/admin` and require admin authentication
-
-### API & Data Flow
+### 2-5. 管理画面の設計方針
 目的・想定
 - 単一店舗で運用するアパレルECサイトを想定する。管理画面の利用者は店主・在庫管理スタッフで、商品管理 / 在庫管理 / 注文管理を行う。
 - ユーザー画面の利用者は顧客で、商品の閲覧・購入を行う（ゲスト購入も可）。
@@ -79,9 +63,15 @@ Demo：
 
 ドキュメント方針
 - README：全体方針（設計思想 / 主要ルール / 仕様の要点）
-- docs/：詳細（API設計 / 画面仕様 / 状態遷移）
+- docs/：詳細（API設計 / 画面仕様 / 状態遷移)
 
-## Order Status State Machine
+### Order Status Flow
+- Orders move forward-only through their lifecycle (e.g. `paid -> shipped -> completed`).
+- `canceled` is allowed only before shipping; after `shipped` cancellation is blocked.
+- Detailed state transition rules are documented in `docs/30-state-machines.md`.
+
+## 3. Domain Rules
+### 3-1. Order Status State Machine
 pending → paid → processing → shipped → completed
 processing → canceled
 
@@ -91,8 +81,7 @@ processing → canceled
 - canceled は pending / paid / processing でのみ可能
 - 不正なステータス遷移は API 側で拒否する
 
-## Order Status & Transitions
-
+### 3-2. Order Status & Transitions
 利用ステータス:
 - pending
 - paid
@@ -113,14 +102,13 @@ processing → canceled
 - completed から processing / shipped への巻き戻し
 - pending / paid / processing 以外から canceled へ遷移
 
-
-## Inventory Constraints
+### 3-3. Inventory Constraints
 - stock >= 0 (負の値不可)
 - 在庫変更は管理画面の編集モードのみ
 - 支払い確定(Webhook)後に在庫減算
 - 在庫0 の場合は SOLD OUT 表示 (ユーザー側)
 
-## Product State
+### 3-4. Product State
 active -> deleted
 deleted -> active (復元可能)
 
@@ -129,32 +117,57 @@ deleted -> active (復元可能)
 - deleted 状態の商品は一覧の "ゴミ箱" に表示
 - 編集操作は active のみ許可
 
-# API Common Rules
-
-- ALL timestamps are IS08601 format.
-- Authorization: Bearer <token> is required for all admin APIs except login/reset.
+## 4. API Overview
+### 4-1. API Common Rules
+- ALL timestamps are **IS08601** format.
+- `Authorization: Bearer <token>` is required for all admin APIs except login/reset.
 - Error response structure:
-
+```json
 {
   "error": "ERROR_CODE",
   "message": "人間向けの説明"
 }
-
+```
 - Pagination format:
-
+```json
 {
   "current": 1,
   "total_pages": 3
 }
+```
 
-## POST /admin/login
+### 4-2. Endpoint List
+### 4-2. Endpoint List
+
+| Group      | Method | Path                             | Summary                     |
+|-----------|--------|----------------------------------|-----------------------------|
+| Auth      | POST   | /admin/login                    | 管理者ログイン              |
+| Auth      | POST   | /admin/logout                   | ログアウト                  |
+| Auth      | POST   | /admin/password/forgot          | パスワード再設定メール送信  |
+| Auth      | POST   | /admin/password/reset           | パスワード再設定            |
+| Products  | GET    | /admin/products                 | 商品一覧                     |
+| Products  | GET    | /admin/products/:id             | 商品詳細（編集/プレビュー） |
+| Products  | POST   | /admin/products                 | 商品作成                     |
+| Products  | PUT    | /admin/products/:id             | 商品更新                     |
+| Products  | PATCH  | /admin/products/:id/deleted     | 削除・復元トグル            |
+| Trash     | GET    | /admin/trash/products           | 削除済み商品一覧             |
+| Trash     | GET    | /admin/trash/products/:id       | 削除済み商品詳細             |
+| Orders    | GET    | /admin/orders                   | 注文一覧                     |
+| Orders    | GET    | /admin/orders/:id               | 注文詳細                     |
+| Orders    | PATCH  | /admin/orders/:id/status        | 注文ステータス更新          |
+| Inventory | GET    | /admin/inventories              | 在庫一覧（SKU単位）          |
+| Inventory | PUT    | /admin/inventories              | 在庫一括更新                 |
+
+## 5. API Details
+### 5-1. Auth APIs
+#### POST /admin/login
 概要:
 - 管理者のログインを行う。
 
 認可:
 - 認証不要
 
-### Headers
+### Headers:
 Content-Type: application/json
 
 ### Request Body (JSON):
@@ -172,73 +185,11 @@ Content-Type: application/json
   "token": "jwt-or-session-token"
 }
 ```
-### Status Codes
+### Status Codes:
 - 200 OK: ログイン成功
 - 401 Unauthorized: 認証失敗(メール or パスワード不正)
 
-## POST /admin/password/forgot
-概要:
-- パスワード再設定メールを送信する。
-
-認可:
-- 認証不要
-
-### Headers
-Content-Type: application/json
-
-### Request Bady（JSON）:
-```json
-{
-  "email": "admin@example.com"  // 管理者メールアドレス
-}
-```
-### Response 200:
-```json
-{
-  "message": "パスワード再設定メールを送信しました。"
-}
-```
-### Status Codes
-- 200 OK: 成功
-- 404 NOT FOUND: メールアドレスが存在しない
-
-## POST /admin/password/reset
-概要:
-- パスワード再設定を行う。
-
-認可:
-- 認証不要(reset_token の検証で代替)
-
-### Headers
-Content-Type: application/json
-
-### Request Bady(JSON):
-```json
-{
-  "token": "abcdef123456"  //resetメールに含めたトークン
-  "password": "newPassword123"  //新しいパスワード
-}
-```
-### Response 200:
-```json
-{
-  "message": "パスワードを更新しました。"
-}
-```
-### Status Codes
-- 200 OK: 成功
-- 400 Bad Request: 入力値が不足または不正
-- 404 Not Found: リソースが存在しない
-- 422 Unprocessable Entity: バリデーション違反
-
-### 失敗レスポンス例(404 Not Found):
-```json
-{
-  "error": "INVALID_TOKEN",
-  "message": "パスワード再設定リンクが無効または期限切れです。"
-}
-```
-## POST /admin/logout
+#### POST /admin/logout
 概要:
 - 管理者のログアウトを行う。
 
@@ -255,11 +206,74 @@ Authorization: Bearer <token>
   "message": "ログアウトしました。"
 }
 ```
-### Status Codes
+### Status Codes:
 - 200 OK: 成功
 - 401 Unauthorized: トークンが無効・期限切れ
 
-## GET /admin/products
+#### POST /admin/password/forgot
+概要:
+- パスワード再設定メールを送信する。
+
+認可:
+- 認証不要
+
+### Headers:
+Content-Type: application/json
+
+### Request Bady（JSON）:
+```json
+{
+  "email": "admin@example.com"  // 管理者メールアドレス
+}
+```
+### Response 200:
+```json
+{
+  "message": "パスワード再設定メールを送信しました。"
+}
+```
+### Status Codes:
+- 200 OK: 成功
+- 404 NOT FOUND: メールアドレスが存在しない
+
+#### POST /admin/password/reset
+概要:
+- パスワード再設定を行う。
+
+認可:
+- 認証不要(reset_token の検証で代替)
+
+### Headers:
+Content-Type: application/json
+
+### Request Bady(JSON):
+```json
+{
+  "token": "abcdef123456"  //resetメールに含めたトークン
+  "password": "newPassword123"  //新しいパスワード
+}
+```
+### Response 200:
+```json
+{
+  "message": "パスワードを更新しました。"
+}
+```
+### Status Codes:
+- 200 OK: 成功
+- 400 Bad Request: 入力値が不足または不正
+- 404 Not Found: リソースが存在しない
+- 422 Unprocessable Entity: バリデーション違反
+
+### 失敗レスポンス例(404 Not Found):
+```json
+{
+  "error": "INVALID_TOKEN",
+  "message": "パスワード再設定リンクが無効または期限切れです。"
+}
+```
+### 5-2. Product APIs
+#### GET /admin/products
 概要:
 - 商品一覧を取得する(検索・フィルタ・並び替え・含む)
 
@@ -270,12 +284,12 @@ Authorization: Bearer <token>
 Content-Type: application/json
 Authorization: Bearer <token>
 
-### Query Parameters
+### Query Parameters:
  パラメータ  | 型     | 必須 | 説明 |
 -----------|--------|-----|------|
  `q`      | string | 任意 | 商品名・説明の部分一致検索  |
- `status` | string | 任意 | all / published / unpushed |
- `sort`   | string | 任意 | update_at_desc / update_at_asc |
+ `status` | string | 任意 | all / published / unpublished |
+ `sort`   | string | 任意 | updated_at_desc / updated_at_asc |
  `page`   | number | 任意 | ページ番号（１以上の整数）|
 
 ### Response 200:
@@ -286,7 +300,7 @@ Authorization: Bearer <token>
       "id": "product-uuid",
       "name": "Tシャツ",
       "price": 2980,
-      "thumbnail_url": "/images/priducts/xxx.jpg",
+      "thumbnail_url": "/images/products/xxx.jpg",
       "published": true,
       "update_at": "2026-01-10T12:34:56Z"
     }
@@ -302,7 +316,42 @@ Authorization: Bearer <token>
 - 400 : 不正なクエリパラメータ
 - 401 Unauthorized: 認証トークンが無効 or 未提供
 
-## POST /admin/products
+#### GET /admin/products/:id
+概要:
+- 商品の詳細を取得する（編集画面・プレビュー用）。
+
+認可:
+- 管理者認証が必要。
+
+### Headers:
+- Authorization: Bearer <token>
+
+### Path Parameters:
+ パラメータ | 型     | 必須 | 説明         |
+ --------|--------|-----|--------------|
+ id      | string | 必須 | 商品ID(UUID) |
+
+### Response 200:
+```json
+{
+  "id": "product-uuid",
+  "name": "Tシャツ",
+  "description": "商品説明テキスト",
+  "category": "tops",
+  "price": 2980,
+  "image_url":  "/image/xxx.jpg",
+  "published": true,
+  "variants": [
+    { "id": "variant-uuid-1", "color": "BLACK", "size": "M", "sku": "TSHIRT-BLK-M" }
+  ]
+}
+```
+### Status Codes:
+- 200 OK: 成功
+- 401 Unauthorized: 無効なトークン・未提供
+- 404 Not Found: 指定されたIDの商品が存在しない
+
+#### POST /admin/products
 概要:
 - 商品を新規作成する。
 
@@ -336,54 +385,19 @@ Authorization: Bearer <token>
 - 401 Unauthorized: 認証トークンが無効 or 未提供
 - 422 Unprocessable Entity: バリデーションエラー
 
-## GET /admin/products/:id
-概要:
-- 商品の詳細を取得する（編集画面・プレビュー用）。
 
-認可:
-- 管理者認証が必要。
-
-### Headers
-- Authorization: Bearer <token>
-
-### Path Parameters
- パラメータ | 型     | 必須 | 説明         |
- --------|--------|-----|--------------|
- id      | string | 必須 | 商品ID(UUID) |
-
-### Response 200:
-```json
-{
-  "id": "product-uuid",
-  "name": "Tシャツ",
-  "description": "商品説明テキスト",
-  "category": "tops",
-  "price": 2980,
-  "image_url":  "/image/xxx.jpg",
-  "published": true,
-  "variants": [
-    { "id": "variant-uuid-1", "color": "BLACK", "size": "M", "sku": "TSHIRT-BLK-M" }
-  ]
-}
-```
-### Status Codes:
-- 200 OK: 成功
-- 401 Unauthorized: 無効なトークン・未提供
-- 404 Not Found: 指定されたIDの商品が存在しない
-
-## PUT /admin/products/:id
+#### PUT /admin/products/:id
 概要:
 - 商品本体・基本情報・バリアントをまとめて編集する。
 
 認可:
 - 管理者認証が必要。
 
-### Headers
+### Headers:
 Content-Type: application/json
 Authorization: Bearer <token>
 
-### Path Parameters
-
+### Path Parameters:
  パラメータ  | 型    | 必須   | 説明          |
  ---------|-------|-------|--------------|
   id      | string | 必須 | 商品ID（UUID） |
@@ -421,14 +435,14 @@ Authorization: Bearer <token>
   "message": "商品を更新しました。"
 }
 ```
-### Status Codes
+### Status Codes:
 - 200 OK: 正常に更新された
 - 400 Bad Request: JSON形成不正・必須項目不足
 - 401 Unauthorized: 認証トークンが無効・未提供
 - 404 Not Found: 指定されたIDの商品が存在しない
 - 422 Unprocessable Entity: バリデーションエラー（価格が負数など）
 
-## PATCH /admin/products/:id/deleted
+#### PATCH /admin/products/:id/deleted
 概要:
 - 商品の論理削除フラグをON/OFFする（削除・復元トグリ）。
 - どの画面から呼んでも「deleted を true/false にするだけ」。
@@ -436,11 +450,11 @@ Authorization: Bearer <token>
 認可:
 - 管理者認証が必要
 
-### Headers
+### Headers:
 - Content-Type: application/json
 - Authorization: Bearer <token>
 
-### Path Parameters
+### Path Parameters:
  パラメータ  | 型     | 必須  | 説明         |
  ---------|--------|------|--------------|
  id       | string | 必須 | 商品ID（UUID） |
@@ -464,17 +478,95 @@ Authorization: Bearer <token>
 - 401 Unauthorized: 認証トークンが無効 or 未提供
 - 404 Not Found: 指定されたIDの商品が存在しない
 
-## GET /admin/orders
+#### GET /admin/trash/products
 概要:
-- 商品一覧を取得する（検索、フィルター、並び替えを含む）。
+- `deleted = true` の商品だけを一覧取得する（検索・並び替えを含む）。
 
 認可:
 - 管理者認証が必要。
 
-### Headers
+### Headers:
+Authorization: Bearer <token>
+
+### Query Parameters:
+ パラメータ | 型     | 必須 | 説明                              |
+ --------|--------|------|-----------------------------------|
+ q       | string | 任意 | 商品名での一部一致検索               |
+ sort    | string | 任意 | deleted_at_desc / deleted_at_asc |
+ page    | number | 任意 | ページ番号(１以上の整数)             |
+
+### Response 200:
+```json
+{
+  "products": [
+    {
+      "id": "uuid-1",
+      "name": "Tシャツ",
+      "published": true,
+      "deleted_at": "2026-01-10T12:34:56Z"
+    }
+  ],
+  "pagination": {
+    "current_page": 1,
+    "total_pages": 3
+  }
+}
+```
+### Status Codes:
+- 200 OK: 成功
+- 401 Unauthorized: トークンが無効・未提供
+- 404 Not Found: ページ範囲外もしくは該当商品が存在しない
+
+#### GET /admin/trash/products/:id
+概要:
+- `deleted = true` の商品詳細を取得する。
+- `deleted = false`（すでに削除済み）の場合も 404 を返す。
+
+認可:
+- 管理者認証が必要
+
+### Headers:
 - Authorization: Bearer <token>
 
-### Query Parameters
+### Path Parameters:
+ パラメータ  | 型     | 必須 | 説明         |
+ ---------|--------|-----|--------------|
+ id       | string | 必須 | 商品ID(UUID) |
+
+### Response 200:
+```json
+{
+  "id": "product-uuid-1",
+  "name": "Tシャツ",
+  "description": "商品説明テキスト",
+  "category": "tops",
+  "price": 2980,
+  "image_url": "/images/xxx.jpg",
+  "deleted": true,
+  "deleted_at": "2026-01-10T12:34:56Z",
+  "variants": [
+    { "variant_id": "v1", "color": "BLK", "size": "S", "stock": 10 },
+    { "variant_id": "v2", "color": "WHT", "size": "M", "stock": 5 }
+  ]
+}
+```
+### Status Codes:
+- 200 OK: 成功
+- 401 Unauthorized: トークンが無効・未提供
+- 404 Not Found: 対象IDが存在しない、または削除されていない
+
+### 5-3. Order APIs
+#### GET /admin/orders
+概要:
+- 注文一覧を取得する（検索、フィルター、並び替えを含む）。
+
+認可:
+- 管理者認証が必要。
+
+### Headers:
+- Authorization: Bearer <token>
+
+### Query Parameters:
  パラメータ     | 型 | 必須    | 説明                                |
  ------------|----|---------|------------------------------------|
  q           | string | 任意　 　| 注文番号、顧客名、メールアドレスでの一部一致検索 |
@@ -507,11 +599,11 @@ Authorization: Bearer <token>
   }
 }
 ```
-### Statsu Codes:
+### Status Codes:
 - 200 OK: 成功
 - 401 Unauthorized: トークンが無効 or 未提供
 
-## GET /admin/orders/:id
+#### GET /admin/orders/:id
 概要:
 - 注文の詳細を取得する（注文情報＋注文に含まれる商品一覧）。
 
@@ -546,7 +638,7 @@ Authorization: Bearer <token>
     "type": "guest",
     "name": "Tanaka Taro",
     "email": "user@example.com",
-    "postal_code": "XX県"
+    "postal_code": "XX県",
     "prefecture": "XX市",
     "city": "XX町",
     "address_line1": "XXX-XX",
@@ -571,7 +663,7 @@ Authorization: Bearer <token>
 - 401 Unauthorized: トークンが無効・未提供
 - 404 Not Found: 指定されたIDの注文が存在しない
 
-## PATCH /admin/orders/:id/status
+#### PATCH /admin/orders/:id/status
 概要:
 - 注文ステータスを更新する。
 - Order Status & Transitions に定義されたルールに従い、不正な遷移は拒否する。
@@ -579,7 +671,7 @@ Authorization: Bearer <token>
 認可:
 - 管理者認証が必要。
 
-### Headers
+### Headers:
 - Content-Type: application/json
 - Authorization: Bearer <token>
 
@@ -602,20 +694,21 @@ Authorization: Bearer <token>
 - 401 Unauthorized: トークンが無効・未提供
 - 404 Not Found: 注文が存在しない
 - 422 Unprocessable Entity:
-- Order Status & Transitions に反する戦意を要求した場合
+- Order Status & Transitions に反する遷移を要求した場合
 - 例: shipped/completed の注文に "canceled"を指定した場合
 
-## GET /admin/inventories
+### 5-4. Inventory APIs
+#### GET /admin/inventories
 概要:
 - バリアント（SKU）単位の在庫一覧を取得する（検索・フィルター・並び替えを含む）。
 
 認可:
 - 管理者認証が必要。
 
-### Headers
+### Headers:
 - Authorization: Bearer <token>
 
-### Query Parameters
+### Query Parameters:
  パラメータ     | 型     | 必須  | 説明                                             |
  ------------|--------|------|--------------------------------------------------|
  q           | string | 任意 | 商品名 / カラー / サイズの部分一致検索                 |
@@ -623,7 +716,7 @@ Authorization: Bearer <token>
  sort        | string | 任意 | stock_desc / stock_asc(在庫数の降順/昇順)           |
  page        | number | 任意 | ページ番号（１以上の整数）                            |
 
-### Response 200 :
+### Response 200:
 ```json
 {
   "variants": [
@@ -633,7 +726,7 @@ Authorization: Bearer <token>
       "color": "BLK",
       "size": "S",
       "stock": 10,
-      "update_at": "2026-01-10T12:34:56Z",
+      "updated_at": "2026-01-10T12:34:56Z",
     }
   ],
   "pagination": {
@@ -644,9 +737,9 @@ Authorization: Bearer <token>
 ```
 ### Status Codes:
 - 200 OK: 成功
-- 401 Uanuthorized: トークンが無効・未提供
+- 401 Unauthorized: トークンが無効・未提供
 
-## PUT /admin/inventories
+#### PUT /admin/inventories
 概要:
 - 編集モード ON 中に変更された全ての在庫を一括更新する。
 
@@ -675,7 +768,7 @@ Authorization: Bearer <token>
 ### Response 200:
 ```json
 {
-  "update_count": 2,
+  "updated_count": 2,
   "message": "在庫を更新しました。"
 }
 ```
@@ -685,84 +778,7 @@ Authorization: Bearer <token>
 - 401 Unauthorized: トークン無効・未提供
 - 422 Unprocessable Entity: 在庫数が負数などのバリデーション違反
 
-## GET /admin/trash/products
-概要:
-- `deleted = true` の商品だけを一覧取得する（検索・並び替えを含む）。
-
-認可:
-- 管理者認証が必要。
-
-### Headers
-Authorization: Bearer <token>
-
-### Query Parameters:
- パラメータ | 型     | 必須 | 説明                              |
- --------|--------|------|-----------------------------------|
- q       | string | 任意 | 商品名での一部一致検索               |
- sort    | string | 任意 | deleted_at_desc / deleted_at_asc |
- page    | number | 任意 | ページ番号(１以上の整数)             |
-
-### Response 200:
-```json
-{
-  "products": [
-    {
-      "id": "uuid-1",
-      "name": "Tシャツ",
-      "published": true,
-      "deleted_at": "2026-01-10T12:34:56Z"
-    }
-  ],
-  "pagination": {
-    "current_page": 1,
-    "total_pages": 3
-  }
-}
-```
-### Status Codes:
-- 200 OK: 成功
-- 401 Unauthorized: トークンが無効・未提供
-- 404 Not Found: ページ範囲外もしくは該当商品が存在しない
-
-## GET /admin/trash/products/:id
-概要:
-- `deleted = true` の商品詳細を取得する。
-- `deleted = false`（すでに削除済み）の場合も 404 を返す。
-
-認可:
-- 管理者認証が必要
-
-### Headers
-- Authorization: Bearer <token>
-
-### Path Parameters:
- パラメータ  | 型     | 必須 | 説明         |
- ---------|--------|-----|--------------|
- id       | string | 必須 | 商品ID(UUID) |
-
-### Response 200:
-```json
-{
-  "id": "product-uuid-1",
-  "name": "Tシャツ",
-  "description": "商品説明テキスト",
-  "category": "tops",
-  "price": 2980,
-  "image_url": "/images/xxx.jpg",
-  "deleted": true,
-  "deleted_at": "2026-01-10T12:34:56Z",
-  "variants": [
-    { "variant_id": "v1", "color": "BLK", "size": "S", "stock": 10 },
-    { "variant_id": "v2", "color": "WHT", "size": "M", "stick": 5 }
-  ]
-}
-```
-### Status Codes:
-- 200 OK: 成功
-- 401 Unauthorized: トークンが無効・未提供
-- 404 Not Found: 対象IDが存在しない、または削除されていない
-
-# Error Codes
+### 5-5. Error Codes:
 - BAD_REQUEST            / JSONフォーマット不正、クエリ不正
 - UNAUTHORIZED           / トークンが無効 or 未提供
 - INVALID_CREDENTIALS    / ログイン失敗
@@ -771,46 +787,15 @@ Authorization: Bearer <token>
 - VALIDATION_ERROR       / バリデーション違反
 - CONFLICT               / 整合性エラー・復元不可など
 
-
- 
-    
-
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## Features
-- 
-
-## Tech Stack
+## 6. Setup
+### 6-1. Tech Stack
 - Ruby 3.2.2
 - Ruby on Rails 7.1
 - PostgreSQL
 - CSS / JavaScript
 - Render (deployment)
 
-## Notes
-- 
-
-## Local Setup
+### 6-2. Local Setup
 ```bash
 bundle install
 rails db:create db:migrate
