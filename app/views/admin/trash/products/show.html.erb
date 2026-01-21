@@ -1,0 +1,10 @@
+<h1><%= @product.name %></h1>
+
+<p><%= @product.description %></p>
+
+<%= button_to "復元",
+  deleted_admin_product_path(@product, deleted: false),
+  method: :patch,
+  data: { confirm: "復元しますか？" } %>
+
+<%= link_to "一覧に戻る", admin_trash_products_path %>

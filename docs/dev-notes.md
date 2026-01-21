@@ -1,0 +1,519 @@
+# Dev Notes
+
+- 疑問点メモ
+- 現在のタスク
+- 次に整理すべき内容
+
+- column(カラム)
+データの項目
+
+- index(インデックス)
+検索を早くする仕組み
+
+- unique
+重複を禁止する制約 (例) unique: true
+
+- マイグレーションファイルの役割
+DBテーブルの構造を定義する
+カラム名/型/制約（null false/unique/foreign key)を決める
+「DB設計はマイグレーションから始まる」
+
+- モデルファイルの役割
+テーブルと 1:1で対応
+関連（has_many/belongs_to）を定義する
+バリデーションを定義する
+ビジネスロック（計算・状態遷移）を書く場所
+
+- referenceとは？
+- migrate variant （t.reference :product）
+- 外部キー用のカラム +インデックスをまとめて作成する型。t.reference :productはproduct内に複数のカラムがあるからこれが必要。
+
+- null: falseがなぜ必要か？
+- migrate
+- そのカラムは空が絶対の許されないから（エラー起こす）
+、検索とかは空でもいいからfalseがいらない
+
+- foreign_keyとは？
+- migrate（t.references :product, foreign_key: true）
+- DB に「product_variants.product_id は products.idと一致しなければならない」という制約を作る。
+
+- add_index :xxx, :yyyとは？
+- migrate (add_index :product_variants, :sku, unique: true)
+- 検索用インデックスを作る
+
+- has_many とは？
+- models > product
+- 一つの商品(product)は複数のバリアントを持つ
+※モデル同士の関連を定義する
+
+- dependent: :destroy とは？
+- model
+- 親のproductを削除したら関連するproduct_variantsを自動で一緒に削除する（物理削除の場合）
+※モデル同士の関連を定義する
+
+- belongs_to :product とは？
+- model > variant
+- このバリアントは必ず一つのproductに属する
+※モデル同士の関連を定義する
+
+- controllerの各アクションは「画面に必要なレコードをmodel経由で引っ張ってきて@変数に閉じ込める」
+DB -> products(テーブル) ->　@products(変数)
+
+- modelは「DBテーブルへの窓口 + バリデーション・scope(よく使う条件のショートカット)」
+@product(変数) = Product.where(deleted: false)
+Product が productsテーブルを表すModelクラス
+
+- scopeはmodelで定義する。
+  それをcontrollerでショートカットキみたいに使う
+
+- active は scope の一種で "scope :active, -> {,}
+
+- viewは「＠変数を使ってHTMLを組み立てる」
+
+- link_to + *_path は「routesが定義したshow/indexなどへのURLを作るヘルパー」
+link_to "表示文字列", "URL" (という形)
+
+- before_action :set_product とは？
+- controller
+- 各アクションが実行される前に、実行する。privateとかで定義した内容を。
+def set_product
+  @product = Product.find(params[:id])
+end  これを先に実行する。
+
+- paramsとは？
+- 「リクエストで送られてきた全データをまとめたハッシュ」
+中身 (URL,クエリパラメータ,フォーム)
+URL - GET /admin/products/12 = params[:id] => 12
+クエリ - GET /admin/products?q=shirt&page=2 
+         = params[:q] => "shirt"
+           params[:page] => "2"
+フォーム - <%= form_with model: @product do |f|%>
+            <% f.text_field :name %> の場合
+          params = {
+            product: {
+              name: "Tシャツ",
+              description: "..."
+              price_cents: "2980",
+              published: "1"
+
+- params.require とは？
+params.require(:product) の場合
+params[:product]が存在しなければエラー。
+フォームが正しく送られたかの保証
+
+- params.permit とは？
+permit(:name)の場合 更新・保存を許可するカラムだけ明示
+
+params.require(:product).permit(...)
+productという塊が必須で、その中のこの項目だけ使っていい
+
+- form_with とは？  自動分岐してくれる
+- <%= form_with model: @product do |f| %>
+- 中身 if @product.persisted?
+        PATCH /admin/products/:id 更新になる
+      else
+        POST /admin/products 新規作成になる
+      end
+
+- persisted? とは？
+- DBに保存済みか？（IDを持っているか？）
+  Product.newは新規なので元々のIDがないからfalse
+
+- notice とは？
+- notice: "保存しました"
+                 = flash[:notice] = "保存しました"
+redirectが発生しないと表示がされない。画面遷移「前提」
+
+- <% if @product.errors.any? %> 
+この商品にエラーが一つでもあるか？を確認している
+@product = 今扱っているオブジェクト
+.errors  = バリデーションで失敗した結果を溜めている箱
+.any?    = 中身が一件でもあるか？
+
+- <% @product.errors.full_messages.each do |msg|
+エラーメッセージを一件ずつ取り出す(整形済みの文章を返す)
+・"Name can`t be black"
+・"Price cents is not a number" など
+
+- <li><%= msg %></li>
+１行分のエラーメッセージをHTMLに表示する "Name~"を表示
+
+- button_to "削除", toggle_deleted_admin_product_path(@product)
+- URLを作る  そのURLにリクエストを送るボタンを作る
+
+- method: :patch
+HTTPメソッドをGET -> PATCHへ変更する(削除/更新のため)
+
+- data: { confirm: "削除しますか？" }
+ブラウザ標準の 確認ダイアログのシステム "誤操作防止"
+(流れ) ボタンを押す > 「削除しますか」ポップアップ 
+       > OKの場合  リクエスト送信
+       > キャンセルの場合  何も起こらない
+
+- patch :toggle_deleted, on: :member とは？
+- routes
+- on: :member = 1件のリソースに対する操作の意味
+  patch :toggle_deleted 
+  = PATCH メソッド
+    toggle_deleted アクション名
+
+- resources :products, only: %i[index show] とは
+GET /admin/products index
+GET /admin/products show  を一括で定義する
+
+- include とは？
+- controller
+- N+1(クエリ)を防ぐための「先読み」指定
+
+- N = レコード数 在庫10件 -> N = 10
+
+- 1クエリ = DB問い合わせ1回 DBに投げるSQLの回数が一回
+
+- q = "%#{params[:q]}%" とは？
+- inventories controller
+- 部分一致検索用の未字列を作っている
+params[:q] = "シャツ"の場合 -> q = "%シャツ%" になる
+
+- % の意味
+% = ワイルドカード（0文字以上）
+"T%" = Tから始まる
+"%T%" = 含む（T)
+
+- scope = scope.joins(:product).where(
+  "products.name ILIKE ? OR product_variants.color ILIKE ? OR product_variants.size ILIKE ?",
+  q, q, q
+)
+- where 全体の意味 : 商品名、カラー、サイズのどれかにqを含むSKUを全部取ってくる
+- joins(:product) product_variantsからproductカラムを参照するために必要
+- ILIKE 大文字小文字を区別しないためにつける
+
+- case params[:stock_state] とは？
+- 在庫状態フィルタ（UIのフィルタ切り替え用）
+
+- page = params[:page].to_i とは？
+- params[:page] は
+/admin/api/inventories?page=2 -> params[:page] = 2
+- to_i は
+計算できる数値に変換  "2".to_i -> 2   nil.to_i -> 0
+
+- page = 1 if page < 1 とは？
+- ページ番号の下限ガード 
+page=0, page=-1, page未指定  全部1ページ目扱いにする
+
+- total_pages = (total.to_f / per_page).ceil とは？
+- 総ページの計算をしている
+- to_fは 21 / 20 -> 1(無い場合) 21.to_f / 20-> 1.05
+- ceilは 1.05.ceil = 2 にする
+
+- variants = scope
+  .limit(per_page)
+  .offset((page - 1) * per_page)
+- limit/offset = DBレベルでページング
+
+- variants.map do |v| とは？
+- 全体の意味:ActiveRecordオブジェクトをJSON用Hashに変換
+- mapは 配列を別の配列に変換する
+- |v|は 各ProductVariant、1件ずつ取り出して処理
+
+- updated_at: v.updated_at&.iso8601 とは？
+- iso8601は API標準の日時フォーマット
+- &.は updated_atがnilならエラーにせずnillを返す
+
+- ActiveRecordオブジェクトとは？
+SQL を書かずに Ruby で DB を操作できる存在
+(例) variant = ProductVariant.find(1)
+     ・product_variantsテーブルの１レコード
+     だけど Ruby 的にはオブジェクト
+※簡単に使えるみたいなイメージ
+
+- Hashとは？
+キーと値のセット (例) id: 1
+
+- JSONとは？
+データをやり取りするための文字列フォーマット
+なぜ必要？JSとRailsの共通語（API=JSON返す・受け取る仕組み
+
+- bulk_updateとは？そもそも
+在庫をまとめて更新するためのAPI
+***
+複数SKU在庫を安全に一括更新し、壊れた入力・業務エラー・存在しないIDを全て正しいHTTPステータスに変換するAPI
+***
+
+- HTTPステータスとは？
+処理結果を機械的に伝える番号(200 OK, 400 Bad Request)
+
+- raise ActionController::BadRequest,"updates must be an array" unless update.is_a?(Array)
+意味 : updates が配列じゃなかったら、404エラーにする
+(分解する)
+- updates.is_a?(Array)
+updatesは配列か？
+- unless
+違ったら
+- raise
+例外を投げる
+
+- updated_count = 0 はなぜ必要？
+何件更新できたかを返すため
+
+- ProductVariants.transition do とは？
+全部成功するか、全部失敗するか
+エラーが一つでもあると更新しない仕組み
+
+- updates.each do |row|
+updates = 配列
+row = {id: 1, stock: 10}みたいな配列
+
+- row.fetch(:id)とrow.fetch(:stock) 意味は？
+fetchの意味 : キーがなければ例外(必須項目チェックを兼ねる)
+
+- stock_i = Integer(stock)とは？何してる？
+Integer("10") -> 10
+Integer("a") -> ArgumentError
+「数値でなければ即エラー」
+
+- stock_iとは？
+stock は params由来(文字列)、
+stock_i は Integerに変換された値
+xxx_s は string、xxx_at は datetime
+
+- raise ActiveRecord::RecordInvalid ~ if stock_i<0
+意味 :在庫は０以上、負数は業務的にNG
+
+- variant = ProductVariant.find(id)とは？
+・指定されたSKUをDBから取得
+・なければRecordNotFound
+
+- variant.update!(stock: stock_i)
+update!の"！"
+・成功 -> OK
+・失敗 -> 例外
+
+- update_count += 1とは？
+・成功した分だけカウント
+・ロールバックされたら全部無効
+
+- colspanとは？
+- HTML  <td colspan="4">Loading...</td> 4列分
+- 横方向に何列分使うか
+[1/20]
+- document.addEventListener("DOMContentLoaded", () =>  とは？
+- javascript(invent)
+- ページが実行されたら実行
+
+- fetch("/admin/api/inventories)
+在庫APIを叩く
+
+- .then(res => res.json())
+JSONに変換
+
+- const tbody = document.getElementById ("inventory-body")
+tbody.innerHTML = ""
+表を一回まっさらにする
+
+- data.variants.forEach(v => {
+SKU（variant）を一行ずつ処理
+
+- tr.innerHTML = `...`
+行HTMLを組み立てる
+
+- tbody.appendChild(tr)
+表に追加
+
+- console.log("inventories.js loaded") とは？
+このJSファイルが本当に実行されたか確認（通電テスト）
+
+- const tbody = document.getElementById("inventories-body")とは？
+・document: 今表示されているHTML全体
+・getElementById("inventories-body")
+id="inventories-body"を持つ要素を一つ探す
+・const tbody: 見つけた要素をtbodyという名前で保存
+
+- constとは？
+再入力できない変数（DOM変数）
+
+- letとは？
+数値が変わる変数
+
+- if(!tbody){
+  console.error("inventories-body not found")
+  return
+}
+全体の意味: `tbody`が見つからなかった時の保険
+`!tbody`: tbodyがnillならtrue
+`console.error`: 赤文字でエラー表示
+`return`: このJSの処理をここで終了
+
+- const tr = document.createElement("tr")
+<tr></tr>をJSで新しく作る
+
+- tbody.appendChild(tr)
+作った<tr>を<tbody>の子として追加する
+
+- .catch(err =>{
+  console.error(err)
+  })
+全体の意味: fetchやthenの途中でエラーが起きたらここに来る
+`err`: 起きたエラー内容の表示
+`console.error(err)`: Consoleに赤文字で出す
+何も表示されない理由を知るため
+
+- function collectUpdates() {...}  
+「collectUpdates」という名前の処理を定義(メソッド的な)
+
+- updates = []とは？
+updatesという配列(Array)を作っている(空の箱)
+
+- document.querySelectAll(...)
+指定条件に合う要素を全部取得
+
+- inputs.forEach(...)
+inputを１つずつ処理するループ
+
+- input.dataset.variantId
+data-variant-id="123" -> "123"を取得
+「variantのID」
+
+- updates.push({...})
+{ id, stock }を配列に追加
+
+[
+  { id: "1", stock: "10" },
+  { id: "2", stock: "0" }
+]   この形が返ってくる
+
+- return updates 完成した箱を返す
+
+- if (saveBtn) {
+保存ボタンが存在するか確認
+
+- saveBtn.addEventListener("click", () => {
+保存ボタンがクリックされたときに処理を実行
+() => {} は「クリック時に動く関数」
+
+- const updates = collectUpdates()
+画面上の input から在庫変更内容を集める
+返ってくる形 [{ id: "1", stock: "10" }]
+
+- fetch("/admin/api/inventories/bulk_update", {
+Rails の API にHTTPリクエストを送る
+
+- method: "PUT",
+HTTPメソッド「既存データを更新」
+
+- headers: {
+リクエストにつけるメタ情報
+
+- "Content-Type": "application/json",
+送るデータは JSON形式
+
+- "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content
+Railsの CSRF対策
+
+- CSRFとは？
+この操作は本当にこの画面から送られたか？を確認するための鍵
+「不正リクエスト防止」
+
+- body: JSON.stringify({ updates })
+実際に送るデータ { updates: [...] }をJSON文字列に変換
+
+- .then(async res => {
+サーバーからのレスポンスを受け取る
+
+- asyncとは？
+awaitを使える関数にする宣言
+
+- resとは？
+HTTPレスポンス全体
+
+- const json = await res.json().catch(() => ({}))
+レスポンスのJSON本文を取り出す
+
+- awaitとは？
+非同期処理が終わるまで待つ
+
+- if (!res.ok) throw json
+HTTPステータスが200系出なければエラー扱い 404とか検知
+
+- })
+  .catch(err => {
+途中でエラーが起きた場合ここにくる
+
+- alert(err.message || "保存の失敗しました")
+エラーメッセージ表示
+[1/21]
+- input.dataset.originalStockとは？
+HTMLに埋めた「元の在庫数」をJSから読むための名前
+(dateset.xxx)
+
+- const original = input.dataset.originalStockとは
+「このinputが最初に表示された時点の在庫数を取得している」
+
+- if (original !== current) {とは？
+最初の値と今の値が違う場合だけ更新対象にする
+・original: 最初の値
+・current: 今入力されている値
+
+- if (updates.length === 0) {とは？
+何も変更しないのに保存ボタンを押したって意味
+・updates: 変更が合った在庫だけを集めた配列
+updates.length === 0 1件も更新されていない
+
+- getElementById("inventories-body")とは？
+HTMLの中から<tbody id="inventories-body">これ一個とる
+
+- tbodyとは？
+とってきた<tbody>そのもの（表の中身を書き換える場所
+
+- Elementとは？
+HTMLの１要素（div/input/load)
+
+- Eventとは？
+ユーザー操作が発生した出来事（click/submit/load)
+
+- Elとは？
+Elementの略
+
+- function renderRows(variants) {...}とは？
+function(処理の塊に名前つけるもの)
+renderRows(関数名「行を描写する」の意味)
+variants(渡されるデータ)
+
+- loadInventoriesとは？
+自分で定義した関数名「在庫一覧を読み込む一連の流れ」
+
+- infoとは？
+<span>要素。「page1/3」を表示する部品
+
+- ${...}はなに？
+文字列の中に変数を埋め込むのに使う
+
+- history.replaceState(...)とは？
+history(ブラウザの履歴操作API)
+replaceState(ページ遷移せずにURLだけ書き換える)
+
+- location.pathnameとは？
+今のURLのパス部分
+
+- tbody.querySelectorAll("input[data-variant-id]")
+・querySelectorAllとは？
+CSSセレクタで複数要素を取得する
+その後ろは条件。tbody内、data-variant-idを持つinput
+
+- form.addEventListener("submit",(e) => {...})
+・submitイベントを監視
+・フォームを送信されたら即実行
+(e)は発生したイベントそのもの
+
+- e.preventDefault()とは？
+本来の動作を止める
+
+- try {...} catch (err) {...}とは？
+エラーが出るかもしれない処理を囲う
+
+- JSON.stringify(...)とは？
+JSのオブジェクト -> 文字列(JSON) 変換する。
+
+- err.message || err.error || "保存に失敗した"
+意味:err.messageがあればそれ、なければerr.errorそれもなければ固定文言
+
+

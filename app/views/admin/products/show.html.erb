@@ -1,0 +1,29 @@
+<h1>Product detail</h1>
+
+<table>
+  <tr>
+    <th>ID</th>
+    <td><%= @product.id %></td>
+  </tr>
+  <tr>
+    <th>Name</th>
+    <td><%= @product.name %></td>
+  </tr>
+  <tr>
+    <th>Description</th>
+    <td><%= @product.description %></td>
+  </tr>
+  <tr>
+    <th>Price</th>
+    <td><%= @product.price_cents %></td>
+  </tr>
+  <tr>
+    <th>Published</th>
+    <td><%= @product.published? %></td>
+  </tr>
+</table>
+
+<div style="margin-top: 16px;">
+  <%= link_to "Edit", edit_admin_product_path(@product) %> |
+  <%= link_to "Back to list", admin_products_path %>
+</div>

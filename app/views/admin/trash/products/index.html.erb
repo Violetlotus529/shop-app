@@ -1,0 +1,7 @@
+<h1>Trash Products</h1>
+
+<% @product.each do |product| %>
+  <div>
+    <%= link_to product.name, admin_trash_product_path(product) %>
+  </div>
+<% end %>

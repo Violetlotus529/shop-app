@@ -1,0 +1,17 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  product: one
+  sku: MyString
+  color: MyString
+  size: MyString
+  stock: 1
+  deleted: false
+
+two:
+  product: two
+  sku: MyString
+  color: MyString
+  size: MyString
+  stock: 1
+  deleted: false

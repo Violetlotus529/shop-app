@@ -1,0 +1,23 @@
+<h1>Products index</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>名前</th>
+      <th>価格</th>
+      <th>公開状態</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @products.each do |product| %>
+      <tr>
+        <td><%= product.id %></td>
+        <td><%= link_to product.name, admin_product_path(product) %></td>
+        <td><%= product.price_cents %></td>
+        <td><%= product.published ? "公開" : "非公開" %></td>
+        <td><%= product.updated_at %></td>
+        <td><%= link_to "編集", edit_admin_product_path(product) %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

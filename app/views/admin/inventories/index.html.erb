@@ -1,0 +1,39 @@
+<h1>Inventory</h1>
+
+<form id="inventory-filters">
+  <input type="text" name="q" placeholder="商品名 / color / size">
+
+  <select name="stock_state">
+    <option value="">all</option>
+    <option value="in_stock">in_stock</option>
+    <option value="out_of_stock">out_of_stock</option>
+    <option value="low">low (1-4)</option>
+  </select>
+
+  <select name="sort">
+    <option value="">updated_at_desc</option>
+    <option value="stock_asc">stock_asc</option>
+    <option value="stock_desc">stock_desc</option>
+  </select>
+
+  <button type="submit">検索</button>
+</form>
+
+<button type="button" id="save-inventories">保存</button>
+
+<div id="pagination"></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Product</th>
+      <th>Color</th>
+      <th>Size</th>
+      <th>Stock</th>
+    </tr>
+  </thead>
+
+  <tbody id="inventories-body">
+    <tr><td colspan="4">Loading...</td><tr>
+  </tbody>
+</table>
