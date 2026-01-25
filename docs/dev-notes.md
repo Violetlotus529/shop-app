@@ -394,6 +394,9 @@ data-variant-id="123" -> "123"を取得
 画面上の input から在庫変更内容を集める
 返ってくる形 [{ id: "1", stock: "10" }]
 
+- collectUpdates()とは？
+元の値と今の値が違う行
+
 - fetch("/admin/api/inventories/bulk_update", {
 Rails の API にHTTPリクエストを送る
 
@@ -515,5 +518,91 @@ JSのオブジェクト -> 文字列(JSON) 変換する。
 
 - err.message || err.error || "保存に失敗した"
 意味:err.messageがあればそれ、なければerr.errorそれもなければ固定文言
+[1/22]
+- deviseとは？
+認証（ログイン機能）をまとめて提供するRails用ライブラリ
+devise :database_authenticatable, :registerable,
+       :recoverable, :rememberable, :validatable
+・database_authenticatable メール + ログインできる
+・registerable 会員登録できる
+・recoverable パスワード再設定できる
+・validatable email/passwordの最低限バリデーション
+
+- enumとは？
+状態機械の入口
+[1/24]
+- descriptionとは？
+商品説明文
+
+- form_actionとは？
+formがどのURLに送信するか
+
+- quantityとは？
+数量
+
+- value="1" min="1"
+value = 初期状態が１
+min = １未満は入力できない
+
+- sessionとは？
+- cart = session[:cart] || {} # { "variant_id" => quantity }
+- ブラウザごとにRailsが自動で持っている一時保存領域
+
+- variant_ids = cart.keys.map(&:to_i) とは？
+・cart.keys = ["12", "18"] sessionは文字キーになる
+・map(&:to_i) [12, 18]
+つまり「カートに入っているSKUのid一覧を整数で作っている
+
+- qtyとは？
+quantityと同義（数量）
+
+- <%= v.product.name %> (<%= v.color %>/<%= v.size %>) x <%= item.quantity %>
+この商品（色/サイズ）かける 数量
+
+- redirect_backとは？
+直前のページへ戻す（どこから来たかを考慮できる）
+
+- fallback_locationとは？
+refererが存在しない場合の逃げ道
+
+- if customer_signed_in?
+    item = CartItem.find_or_initialize_(customer: current_customer, product_variant: variant)
+    item.quantity = (item.quantity || 0) + qty
+    item.save!
+・initialize「まだDBに存在しないオブジェクトを作るだけ」
+・find_or_initialize「あれば取得/なければnewする」
+
+- cart = session[:cart] ||= {}とは？
+session[:cart]がまだなければ{}を入れる
+
+- to_sとは？
+文字列に変換する
+
+- sumとは？
+- @cart_items.sum { |item| ... }
+- 配列の各要素をブロック評価して合計する
+
+- number_to_currency(
+    @total_cents / 100.0,
+    unit: "¥",
+    precision: 0
+)
+・number_to_currency: 表示専用ヘルパー (数値->金額表示)
+・total_cents /100.0: 
+total_centsは整数(2980円->298000cents)
+・unit: "¥": 通貨の表示単位
+・precision: 0: 小数点以下の桁数(日本円は少数不要)
+
+- unlessとは？
+条件がfalseの時、実行(ifの逆)
+
+- is_aとは？
+クラス判定(そのオブジェクトが指定したクラスか？)
+"abc"  -> .is_a(string) trueになる
+
+- Hashとは？
+Rubyのクラス(型) 文字列、数量etc
+
+- 
 
 

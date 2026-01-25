@@ -1,0 +1,53 @@
+<h1>Cart</h1>
+
+<% if customer_signed_in? %>
+  <% @cart_items.each do |item| %>
+    <% v = item.product_variant %>
+    <% subtotal = item.quantity * v.product.price_cents %>
+
+    <div>
+      <%= v.product.name %> (<%= v.color %>/<%= v.size %>)
+      <div>
+        小計 :¥<%= number_to_currency(subtotal_cents / 100.0, unit: "¥", precision: 0) %>
+      </div>
+
+      <%= form_with url: cart_item_path(item), method: :patch, local: true do %>
+        <input type="number" name="quantity" value="<%= item.quantity %>" min="1">
+        <button type="submit">更新</button>
+      <% end %>
+
+      <%= button_to "削除", cart_item_path(item), method: :delete, data: { turbo_confirm: "削除しますか？" } %>
+    </div>
+    <hr>
+  <% end %>
+<% else %>
+  <% @guest_items.each do |row| %>
+    <% v = row[:variant] %>
+    <% qty = row[:quantity] %>
+
+    <div>
+      <%= v.product.name %> (<%= v.color %>/<%= v.size %>)
+      
+      <div>
+        小計 :¥<%= row[:subtotal_cents] %>
+      </div>
+
+      <%= form_with url: cart_item_path(v.id), method: :patch, local: true do %>
+        <input type="number" name="quantity" value="<%= qty %>" min="1">
+        <button type="submit">更新</button>
+      <% end %>
+
+      <%= button_to "削除", cart_item_path(v.id), method: :delete, data: { turbo_confirm: "削除しますか？" } %>
+    </div>
+
+    <hr>
+  <% end %>
+<% end %>
+<hr>
+
+<div>
+  合計金額:
+  <strong>
+    <%= number_to_currency(@total_cents, unit: "¥", precision: 0) %>
+  </strong>
+</div>

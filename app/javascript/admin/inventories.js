@@ -28,19 +28,26 @@ document.addEventListener("DOMContentLoaded", () => {
     })
   }
 
+  function confirmDiscardIfDirty() {
+    const dirty = collectUpdates().length > 0
+    if (!dirty) return true
+    return confirm("未保存の変更があります。破棄して移動しますか？")
+  }
+
   function renderPagination(pagination, currentParams) {
     if (!paginationEl) return
     const { current_page, total_pages } = pagination
     paginationEl.innerHTML = ""
-
     if (total_pages <= 1) return
 
     const prev = document.createElement("button")
     prev.type = "button"
-    prev.textContent = "prev"
+    prev.textContent = "Prev"
     prev.disabled = current_page <= 1
     prev.addEventListener("click", () => {
-      currentParams.set("page", String(current_page -1))
+      if (!confirmDiscardIfDirty()) return
+
+      currentParams.set("page", String(current_page - 1))
       loadInventories(currentParams)
     })
 
@@ -49,6 +56,8 @@ document.addEventListener("DOMContentLoaded", () => {
     next.textContent = "Next"
     next.disabled = current_page >= total_pages
     next.addEventListener("click", () => {
+      if (!confirmDiscardIfDirty()) return
+
       currentParams.set("page", String(current_page + 1))
       loadInventories(currentParams)
     })
@@ -67,30 +76,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const res = await fetch(url)
     const data = await res.json()
-    renderRows(data.variants)
 
+    renderRows(data.variants)
     if (data.pagination) renderPagination(data.pagination, params)
-    
-    history.replaceState(null, "", `${location.pathname}${qs ? `${qs}` : ""}`)
+
+    history.replaceState(null, "", `${location.pathname}${qs ? `?${qs}` : ""}`)
   }
 
   function collectUpdates() {
     const updates = []
     const inputs = tbody.querySelectorAll("input[data-variant-id]")
+
     inputs.forEach(input => {
-      const original = inputs.dataset.originalStock
+      const original = input.dataset.originalStock
       const current = input.value
       if (original !== current) {
         updates.push({ id: input.dataset.variantId, stock: current })
       }
     })
+
     return updates
   }
 
   if (form) {
     form.addEventListener("submit", (e) => {
       e.preventDefault()
-      const params = new URLSearchParams(new ForDate(form))
+      if (!confirmDiscardIfDirty()) return
+
+      const params = new URLSearchParams(new FormData(form))
       params.set("page", "1")
       loadInventories(params)
     })
@@ -98,7 +111,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (saveBtn) {
     saveBtn.addEventListener("click", async () => {
-      const updates = collectUpdate()
+      const updates = collectUpdates()
+
       if (updates.length === 0) {
         alert("変更はありません")
         return
@@ -113,10 +127,12 @@ document.addEventListener("DOMContentLoaded", () => {
           },
           body: JSON.stringify({ updates })
         })
+
         const json = await res.json().catch(() => ({}))
         if (!res.ok) throw json
 
-        const inputs = tbody.querySelectorAll("inputs[data-variant-id]")
+        // 保存成功後、original を更新して「変更検知」をリセット
+        const inputs = tbody.querySelectorAll("input[data-variant-id]")
         inputs.forEach(input => { input.dataset.originalStock = input.value })
 
         alert(`更新件数: ${json.updated_count}`)
@@ -125,5 +141,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     })
   }
+
   loadInventories(new URLSearchParams(location.search))
 })

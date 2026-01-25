@@ -1,0 +1,17 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+   .: MyString
+  customer: one
+   .: MyString
+  status: 1
+   .: MyString
+  total_cents: 1
+
+two:
+   .: MyString
+  customer: two
+   .: MyString
+  status: 1
+   .: MyString
+  total_cents: 1

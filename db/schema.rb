@@ -10,9 +10,70 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_01_13_172501) do
+ActiveRecord::Schema[7.1].define(version: 2026_01_23_100724) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "cart_items", force: :cascade do |t|
+    t.bigint "customer_id", null: false
+    t.bigint "product_variant_id", null: false
+    t.integer "quantity"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["customer_id"], name: "index_cart_items_on_customer_id"
+    t.index ["product_variant_id"], name: "index_cart_items_on_product_variant_id"
+  end
+
+  create_table "customers", force: :cascade do |t|
+    t.string "email", default: "", null: false
+    t.string "encrypted_password", default: "", null: false
+    t.string "reset_password_token"
+    t.datetime "reset_password_sent_at"
+    t.datetime "remember_created_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "name"
+    t.string "postal_code"
+    t.string "prefecture"
+    t.string "city"
+    t.string "address_line1"
+    t.string "address_line2"
+    t.index ["email"], name: "index_customers_on_email", unique: true
+    t.index ["reset_password_token"], name: "index_customers_on_reset_password_token", unique: true
+  end
+
+  create_table "order_items", force: :cascade do |t|
+    t.bigint "order_id", null: false
+    t.bigint "product_variant_id", null: false
+    t.integer "quantity"
+    t.integer "unit_price_cents"
+    t.integer "subtotal_cents"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["order_id"], name: "index_order_items_on_order_id"
+    t.index ["product_variant_id"], name: "index_order_items_on_product_variant_id"
+  end
+
+  create_table "orders", force: :cascade do |t|
+    t.bigint "customer_id"
+    t.integer "status", default: 0, null: false
+    t.integer "total_cents", default: 0, null: false
+    t.string "stripe_checkout_session_id"
+    t.string "stripe_payment_intent_id"
+    t.datetime "paid_at"
+    t.string "customer_name"
+    t.string "customer_email"
+    t.string "postal_code"
+    t.string "prefecture"
+    t.string "city"
+    t.string "address_line1"
+    t.string "address_line2"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["customer_id"], name: "index_orders_on_customer_id"
+    t.index ["stripe_checkout_session_id"], name: "index_orders_on_stripe_checkout_session_id"
+    t.index ["stripe_payment_intent_id"], name: "index_orders_on_stripe_payment_intent_id"
+  end
 
   create_table "product_variants", force: :cascade do |t|
     t.bigint "product_id", null: false
@@ -37,5 +98,19 @@ ActiveRecord::Schema[7.1].define(version: 2026_01_13_172501) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "stripe_events", force: :cascade do |t|
+    t.string "event_id", null: false
+    t.string "event_type", null: false
+    t.datetime "processed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["event_id"], name: "index_stripe_events_on_event_id", unique: true
+  end
+
+  add_foreign_key "cart_items", "customers"
+  add_foreign_key "cart_items", "product_variants"
+  add_foreign_key "order_items", "orders"
+  add_foreign_key "order_items", "product_variants"
+  add_foreign_key "orders", "customers"
   add_foreign_key "product_variants", "products"
 end
