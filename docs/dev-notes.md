@@ -602,7 +602,221 @@ total_centsは整数(2980円->298000cents)
 
 - Hashとは？
 Rubyのクラス(型) 文字列、数量etc
+[1/27]
+- stripe_controllerとは？
+stripe の Webhook(Stripe->あなたのサーバー)を受け取る
+入口のコントローラー
 
-- 
+- skip_before_action:verify_authenticity_tokenとは
+CSRF検証をスキップする(Stripe外部からのPOSTのため)
+「つまりセキュリティ対策が必要になる」
+
+- payload = request.raw_postとは？
+・request : 「今来たHTTPリクエスト」オブジェクト
+・raw_post : そのリクエストの本文(body)を生の文字列で取る
+
+- sig = request.env["HTTP_STRIPE_SIGNATURE"]とは？
+・env : HTTPリクエストの環境情報(ヘッダーなどが入る)
+・"HTTP_STRIPE_SIGNATURE" : StripeがWebhookにつける署名ヘッダー 「このリクエストはStripeが送った」
+
+- secret = ENV.fetch("STRIPE_WEBHOOK_SECRET")とは？
+・ENV : OSの環境変数
+・fetch("STRIPE_WEBHOOK_SECRET"): その環境変数を取得
+Webhook secret は Stripe側が発行する共有秘密鍵
+「これがないと署名検証できない」
+
+- event = Stripe::Webhook.construct_event(payload, sig, secret)とは？
+・payload(生本文)とsig(署名ヘッダー)を
+ secret(Webhook secret)で検証して正しければeventを返す
+
+[payload][sig][secret][event]
+この4つで、そのPOSTが本当にStripeから来たものかを検証する
+
+- return head :ok if stripeEvent.exists?(event_id: event.id)とは？
+・head :ok :本文なしでHTTP200を返す(stripeに受け取ったと伝える)
+・return : その場で処理終了
+・StripeEvent.exists?(event_id: event.id) :
+DBに「このevent_idを処理済みとして記録しているか？」を確認
+
+- StripeEvent.create!(event_id: event.id, event_type: event.type)とは？
+「このStripeイベントを処理した」という記録をDBに残す」
+・event.id : Stripeが付けるイベント固有ID
+・event.type : イベント種別(例 checkout.session.cpd)
+
+- case event.type/when"checkout.session.completed"
+Rubyの分岐構文(case/when)
+event.typeの文字列が"checkout.session.completed"に
+一致したらその処理を実行
+
+- event.data.objectとは？
+Stripeイベントの本体データ
+
+- head :okとは？
+Stripe に「正常に受け取りました」と返す
+
+- rescue JSON::ParserError, Stripe::SignatureVer
+JSONが壊れてる or 署名が不正な場合
+
+- head :bad_requestとは？
+Stripe に「不正リクエスト」と返す
+
+- order_id = session_obj.metadata&.[]("order_id")
+Checkout Session の metadata(Hash)から order_id を取り出す
+
+- metadataとは？
+「Stripe側に保存できる、任意のキー・バリューのメモ」
+ Stripe Checkout Sessionに作った アプリとStripeを繋ぐ
+
+- order_idとは？
+RailsのOrderレコードの主キー
+
+- Checkout開始時の流れ
+1.Railsで[Order.create!]する -> order.id = 123
+2.Stripe Checkout Sessionを作る 
+-> metadata : {order_id = 123 }
+3.支払い完了
+4.WebhookでStripeから通知が来る
+5.metadata["order_id"]を見て ->どのOrderの支払いか特定
+
+- return if order.paid?とは？
+既に paid の注文は二重処理しない
+
+- Order.transaction doとは？
+在庫減算・注文状態更新を原始的に行う
+
+- v = ProductVariant.lock.find(item.product_variant_id)とは？
+対象バリアントをロック付きで取得
+
+- lockとは？
+DBレベルで「同時更新を禁止するロック」
+
+- if v.stock < item.quantityとは？
+在庫不足チェック
+
+- order.update!(status: :failed)
+支払いは完了しているが、在庫確保に失敗 -> failed扱いにする
+
+- order.order_items.each do |item|とは？
+在庫減算フェーズ
+
+- v.update!(stock: v.stock - item.quantity)とは？
+在庫を確定減算
+
+- order.update!(
+    status: :paid,
+    paid_at: Time.current,
+    stripe_payment_intent_id: session_obj
+                                   payment_intent
+)
+注文を確定にする
+・update : 決済完了処理
+・paid_at : 決済が完了した時刻
+・Time.current : Railsのタイムゾーンに沿った現在時刻
+・payment intent : Stripeの支払い処理単位
+・stripe_payment_intent_id : Stripe側の支払い識別子
+(3行目はStripe側の支払いiDを注文に紐づける)
+
+- CheckoutsControllerとは？
+カートの内容を確定してStripe決済を開始する
+ためのコントローラー
+カート->注文(Order)を作成->StripeCheckout開始の入り口
+
+- build_cart_rows!とは？
+カートの中身を"決済・注文用の正規データ"に変換するメソッド
+
+- rowsとは？
+カート全体(バリアント、数量、単価、小計)
+
+- rとは？
+1商品分の情報(rowsの中の)
+
+- rows = build_cart_rows!
+  total_cents = rows.sum { |r| r[:subtotal_cents]}
+  raise ActiveRec::RecordInvalid if total_cents <0
+・空カート防止
+・金額0円防止
+
+- order = Order.create!(
+    status: :pending,
+    total_cents: total_cents,
+    ...
+)
+Orderを作る この時点ではまだ支払われてない注文「pending」
+
+- session_obj = Stripe::Checkout::Session.create()
+Stripe Checkout Sessionを作る
+stripeに「支払い画面を作って」と依頼
+
+- metadata: { order_id: order.id }
+Webhookで「どのOrderの支払いか」を判別するため
+
+- order.updata!(stripe_checkout_session_id: session_obj.id)とは？
+セッションIDを保存
+
+- redirect_to session_obj.url, allow_other_host: true
+Stripeページへのリダイレクト
+
+- allow_other_host: trueとは？
+自分のサイト以外へのリダイレクトを許可するためのオプション
+
+- if customer_signed_in?
+会員/ゲストの分岐
+・会員 -> DB (cart_items)
+・ゲスト -> session[:cart]
+
+- raise ActiveRecord::RecordNotFound if v.deleted?
+非公開商品
+- raise ArgumentError if qty < 1
+在庫不足
+- raise ArgumentError if v.stock < qty
+不正数量
+「決済前に必ず落とす」
+
+- success_url: order_url(order) + "?paid=1"とは？
+Stripe決済が完了した後、ユーザーが戻されるURL
+・order_url(order) = /orders/:id
+・?paid=1 = クエリパラメータ
+
+- unit_price_centsとは？
+一個当たりの価格
+
+- variants = items.map(&:product_variant)とは？
+variants = items.map {|item| item.product_variant}
+と同じ意味
+・&: 「各要素に対してこのメソッドを呼ぶ」ショートハンド
+
+- qty_map = item.index_by { |i| 
+i.product_variant_id}.transform_value(&:quantity)
+目的 :「variant_id -> 数量」のハッシュを作る
+
+- index_byとは？
+配列 -> ハッシュに変換
+
+- |i|とは？
+ただの変数名(名前はなんでもいい)
+
+- qty_mapとは？
+数量マップ「このvariantは何個買われている？」
+
+- transform_values(&:quantity)とは？
+キーはそのまま、値だけ変換(idじゃなくqtyを取得)
+
+- &:quantityとは？
+|value| value.quantityの略
+
+- transform_keys(&:to_i)とは？
+キーを文字列 -> 整数に変換
+
+- transform_value { |v| Integer(v) rescue 0 }
+・transform_value : キーはそのまま値だけ変換
+・Integer(v) : 不整地を検出(数字以外を弾く)
+・rescue : 失敗したら0を返す
+・キー(key) : IDみたいな感じ、２番の商品が４個(値)ある
+
+
+
+
+
+
 
 

@@ -8,6 +8,7 @@ class Order < ApplicationRecord
     processing: 2,
     shipped: 3,
     completed: 4,
-    canceled: 5
+    canceled: 5,
+    failed: 6
   }
 end

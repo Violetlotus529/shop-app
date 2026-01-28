@@ -27,7 +27,20 @@
 
     <div>
       <%= v.product.name %> (<%= v.color %>/<%= v.size %>)
-      
+      <%= form_with url: checkout_path, method: :post, local: true do %>
+        <% unless customer_signed_in? %>
+          <input name="customer_name" placeholder="氏名" required>
+          <input name="customer_email" placeholder="Email" required>
+          <input name="postal_code" placeholder="郵便番号" required>
+          <input name="prefecture" placeholder="都道府県" required>
+          <input name="city" placeholder="市区町村" required>
+          <input name="address_line1" placeholder="番地" required>
+          <input name="address_line2" placeholder="建物名">
+       <% end %>
+
+       <button type="submit">決済へ進む</button>
+<% end %>
+
       <div>
         小計 :¥<%= row[:subtotal_cents] %>
       </div>
@@ -51,3 +64,4 @@
     <%= number_to_currency(@total_cents, unit: "¥", precision: 0) %>
   </strong>
 </div>
+

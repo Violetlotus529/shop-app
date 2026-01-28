@@ -2,9 +2,18 @@ Rails.application.routes.draw do
   devise_for :customers
 
   resources :products, only: %i[index show]
-
   resource :cart, only: [:show]
   resources :cart_items, only: %i[create update destroy]
+
+  namespace :webhooks do
+    get 'stripe/create'
+    post :stripe, to: "stripe#create"
+  end
+
+  resource :checkout, only: [:create]
+  post "/webhooks/stripe", to: "webhooks/stripe#create"
+  resources :orders, only: [:show]
+
   namespace :admin do
     resources :inventories, only: [:index]
 
@@ -21,14 +30,7 @@ Rails.application.routes.draw do
     namespace :trash do
       resources :products, only: %i[index show]
     end
-
   end
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
-  # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
-  # Can be used by load balancers and uptime monitors to verify that the app is live.
   get "up" => "rails/health#show", as: :rails_health_check
-
-  # Defines the root path route ("/")
-  # root "posts#index"
 end
