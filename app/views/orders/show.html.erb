@@ -1,0 +1,8 @@
+<h1>Order</h1>
+
+<p>Order ID: <%= @order.id %></p>
+<p>Status: <%= @order.status %></p>
+
+<% if params[:paid].present? %>
+  <p>支払いが完了しました</p>
+<% end %>

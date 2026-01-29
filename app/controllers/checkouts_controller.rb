@@ -40,8 +40,8 @@ class CheckoutsController < ApplicationController
           quantity: r[:qty]
         }
       },
-      success_url: order_url(order) + "?paid=1",
-      cancel_url: cart_url,
+      success_url: order_url(order, paid: 1),
+      cancel_url:  cart_url,
       metadata: { order_id: order.id }
     )
 
@@ -51,8 +51,9 @@ class CheckoutsController < ApplicationController
     redirect_to cart_path, alert: "商品が見つかりません"
   rescue ArgumentError
     redirect_to cart_path, alert: "数量が不正です"
-  rescue
-    redirect_to cart_path, alert: "決済処理の開始に失敗しました"
+  rescue => e
+    Rails.logger.error(e.full_message)
+    raise
   end
 
   private

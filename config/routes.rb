@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  get 'orders/show'
   devise_for :customers
 
   resources :products, only: %i[index show]
@@ -6,12 +7,10 @@ Rails.application.routes.draw do
   resources :cart_items, only: %i[create update destroy]
 
   namespace :webhooks do
-    get 'stripe/create'
     post :stripe, to: "stripe#create"
   end
 
   resource :checkout, only: [:create]
-  post "/webhooks/stripe", to: "webhooks/stripe#create"
   resources :orders, only: [:show]
 
   namespace :admin do

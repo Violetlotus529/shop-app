@@ -23,9 +23,11 @@ class Webhooks::StripeController < ApplicationController
   private
 
   def handle_checkout_completed(session_obj)
-    order_id = session_obj.metadata&.[]["order_id"]
-    order = Order.find(order_id)
+    order_id = session_obj.metadata&.[]("order_id")
+    return unless order_id.present?
 
+    order = Order.find(order_id)
+    return unless order
     return if order.paid?
 
     Order.transaction do

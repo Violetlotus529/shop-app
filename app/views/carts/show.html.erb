@@ -3,65 +3,96 @@
 <% if customer_signed_in? %>
   <% @cart_items.each do |item| %>
     <% v = item.product_variant %>
-    <% subtotal = item.quantity * v.product.price_cents %>
+    <% subtotal_cents = item.quantity * v.product.price_cents %>
 
     <div>
-      <%= v.product.name %> (<%= v.color %>/<%= v.size %>)
+      <strong><%= v.product.name %></strong>
+      (<%= v.color %>/<%= v.size %>)
+
       <div>
-        小計 :¥<%= number_to_currency(subtotal_cents / 100.0, unit: "¥", precision: 0) %>
+        小計:
+        <%= number_to_currency(subtotal_cents, unit: "¥", precision: 0) %>
       </div>
 
       <%= form_with url: cart_item_path(item), method: :patch, local: true do %>
-        <input type="number" name="quantity" value="<%= item.quantity %>" min="1">
-        <button type="submit">更新</button>
+        <input
+          type="number"
+          name="quantity"
+          value="<%= item.quantity %>"
+          min="1"
+        >
+        <button type="submit">数量更新</button>
       <% end %>
 
-      <%= button_to "削除", cart_item_path(item), method: :delete, data: { turbo_confirm: "削除しますか？" } %>
+      <%= button_to(
+            "削除",
+            cart_item_path(item),
+            method: :delete,
+            data: { turbo_confirm: "削除しますか？" }
+          ) %>
     </div>
+
     <hr>
   <% end %>
+
 <% else %>
   <% @guest_items.each do |row| %>
     <% v = row[:variant] %>
     <% qty = row[:quantity] %>
+    <% subtotal_cents = row[:subtotal_cents] %>
 
     <div>
-      <%= v.product.name %> (<%= v.color %>/<%= v.size %>)
-      <%= form_with url: checkout_path, method: :post, local: true do %>
-        <% unless customer_signed_in? %>
-          <input name="customer_name" placeholder="氏名" required>
-          <input name="customer_email" placeholder="Email" required>
-          <input name="postal_code" placeholder="郵便番号" required>
-          <input name="prefecture" placeholder="都道府県" required>
-          <input name="city" placeholder="市区町村" required>
-          <input name="address_line1" placeholder="番地" required>
-          <input name="address_line2" placeholder="建物名">
-       <% end %>
-
-       <button type="submit">決済へ進む</button>
-<% end %>
+      <strong><%= v.product.name %></strong>
+      (<%= v.color %>/<%= v.size %>)
 
       <div>
-        小計 :¥<%= row[:subtotal_cents] %>
+        小計:
+        <%= number_to_currency(subtotal_cents, unit: "¥", precision: 0) %>
       </div>
 
       <%= form_with url: cart_item_path(v.id), method: :patch, local: true do %>
-        <input type="number" name="quantity" value="<%= qty %>" min="1">
-        <button type="submit">更新</button>
+        <input
+          type="number"
+          name="quantity"
+          value="<%= qty %>"
+          min="1"
+        >
+        <button type="submit">数量更新</button>
       <% end %>
 
-      <%= button_to "削除", cart_item_path(v.id), method: :delete, data: { turbo_confirm: "削除しますか？" } %>
+      <%= button_to(
+            "削除",
+            cart_item_path(v.id),
+            method: :delete,
+            data: { turbo_confirm: "削除しますか？" }
+          ) %>
     </div>
 
     <hr>
   <% end %>
 <% end %>
-<hr>
 
-<div>
-  合計金額:
+<div style="margin-top: 20px;">
   <strong>
+    合計金額:
     <%= number_to_currency(@total_cents, unit: "¥", precision: 0) %>
   </strong>
 </div>
 
+<hr>
+
+<%= form_with url: checkout_path, method: :post, local: true do %>
+  <% unless customer_signed_in? %>
+    <div><input name="customer_name" placeholder="氏名" required></div>
+    <div><input name="customer_email" placeholder="Email" required></div>
+    <div><input name="postal_code" placeholder="郵便番号" required></div>
+    <div><input name="prefecture" placeholder="都道府県" required></div>
+    <div><input name="city" placeholder="市区町村" required></div>
+    <div><input name="address_line1" placeholder="番地" required></div>
+    <div><input name="address_line2" placeholder="建物名"></div>
+  <% end %>
+
+  <button type="submit" style="margin-top: 16px;">
+    決済へ進む
+  </button>
+<% end %>
