@@ -79,20 +79,25 @@
   </strong>
 </div>
 
-<hr>
+<% has_items = customer_signed_in? ? @cart_items.present? : @guest_items.present? %>
 
-<%= form_with url: checkout_path, method: :post, local: true do %>
-  <% unless customer_signed_in? %>
-    <div><input name="customer_name" placeholder="氏名" required></div>
-    <div><input name="customer_email" placeholder="Email" required></div>
-    <div><input name="postal_code" placeholder="郵便番号" required></div>
-    <div><input name="prefecture" placeholder="都道府県" required></div>
-    <div><input name="city" placeholder="市区町村" required></div>
-    <div><input name="address_line1" placeholder="番地" required></div>
-    <div><input name="address_line2" placeholder="建物名"></div>
+<% if has_items %>
+  <hr>
+  <%= form_with url: checkout_path, method: :post, local: true do %>
+    <% unless customer_signed_in? %>
+      <div><input name="customer_name" placeholder="氏名" required></div>
+      <div><input name="customer_email" placeholder="Email" required></div>
+      <div><input name="postal_code" inputmode="numeric" pattern="\d{3}-?\d{4}" placeholder="郵便番号" required></div>
+      <div><input name="prefecture" placeholder="都道府県" required></div>
+      <div><input name="city" placeholder="市区町村" required></div>
+      <div><input name="address_line1" placeholder="番地" required></div>
+      <div><input name="address_line2" placeholder="建物名"></div>
+    <% end %>
+
+    <button type="submit" style="margin-top: 16px;">
+      決済へ進む
+    </button>
   <% end %>
-
-  <button type="submit" style="margin-top: 16px;">
-    決済へ進む
-  </button>
+<% else %>
+  <p>カートは空です。</p>
 <% end %>

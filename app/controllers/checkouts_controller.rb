@@ -18,6 +18,12 @@ class CheckoutsController < ApplicationController
       address_line2: customer_signed_in? ? current_customer.address_line2 : params[:address_line2]
     )
 
+    unless customer_signed_in?
+      session[:guest_order_ids] = Array(session[:guest_order_ids])
+      session[:guest_order_ids] << order.id
+      session[:guest_order_ids].uniq!
+    end
+
     rows.each do |r|
       OrderItem.create!(
         order: order,
@@ -44,7 +50,6 @@ class CheckoutsController < ApplicationController
       cancel_url:  cart_url,
       metadata: { order_id: order.id }
     )
-
     order.update!(stripe_checkout_session_id: session_obj.id)
     redirect_to session_obj.url, allow_other_host: true
   rescue ActiveRecord::RecordNotFound

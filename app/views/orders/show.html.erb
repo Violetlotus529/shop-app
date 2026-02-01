@@ -1,8 +1,63 @@
-<h1>Order</h1>
+<h1>注文詳細</h1>
 
-<p>Order ID: <%= @order.id %></p>
-<p>Status: <%= @order.status %></p>
-
-<% if params[:paid].present? %>
-  <p>支払いが完了しました</p>
+<% if @waiting_payment_confirmation %>
+  <div style="padding:12px; border:1px solid #ddd; margin-bottom:12px;">
+    支払い確認中です。数秒後に再読み込みしてください。
+  </div>
 <% end %>
+
+<% if @paid_param %>
+  <div style="padding: 12px; border: 1px solid #ccc; margin-bottom: 16px;">
+    支払い完了
+  </div>
+<% elsif @order.failed? %>
+  <div style="padding:12px; border:1px solid #ddd; margin-bottom:12px;">
+    ステータス: <%= @order.status %>
+  </div>
+<% end %>
+
+<hr>
+
+<div>
+  <strong>注文ID:</strong>
+  <%= @order.id %>
+</div>
+
+<div>
+  <strong>ステータス:</strong>
+  <%= @order.status %>
+</div>
+
+<div>
+  <strong>合計:</strong>
+  <%= number_to_currency(@order.total_cents, unit: "¥", precision: 0) %>
+</div>
+
+<hr>
+
+<h2>Items</h2>
+
+<% @order.order_items.each do |item| %>
+  <% v = item.product_variant %>
+  <div style="margin-bottom: 12px;">
+    <div>
+      <strong><%= v.product.name %></strong>
+      (<%= v.color %>/<%= v.size %>)
+    </div>
+
+    <div>
+      数量: <%= item.quantity %>
+    </div>
+
+    <div>
+      単価: <%= number_to_currency(item.unit_price_cents, unit: "¥", precision: 0) %>
+      / 小計: <%= number_to_currency(item.subtotal_cents, unit: "¥", precision: 0) %>
+    </div>
+  </div>
+<% end %>
+
+<hr>
+
+<div>
+  <%= link_to "カートへ戻る", cart_path %>
+</div>

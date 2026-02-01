@@ -16,6 +16,10 @@ Rails.application.routes.draw do
   namespace :admin do
     resources :inventories, only: [:index]
 
+    resources :orders, only: %i[index show] do
+      patch :status, on: :member
+    end
+
     namespace :api, defaults: { format: :json } do
       resources :inventories, only: [:index] do
         collection { put :bulk_update }

@@ -57,7 +57,7 @@ DBテーブルの構造を定義する
 ※モデル同士の関連を定義する
 
 - controllerの各アクションは「画面に必要なレコードをmodel経由で引っ張ってきて@変数に閉じ込める」
-DB -> products(テーブル) ->　@products(変数)
+DB -> products(テーブル) -> @products(変数)
 
 - modelは「DBテーブルへの窓口 + バリデーション・scope(よく使う条件のショートカット)」
 @product(変数) = Product.where(deleted: false)
@@ -810,8 +810,63 @@ i.product_variant_id}.transform_value(&:quantity)
 - transform_value { |v| Integer(v) rescue 0 }
 ・transform_value : キーはそのまま値だけ変換
 ・Integer(v) : 不整地を検出(数字以外を弾く)
-・rescue : 失敗したら0を返す
+・rescue : 失敗したら0を返す、例外が発止した時に分岐させる
 ・キー(key) : IDみたいな感じ、２番の商品が４個(値)ある
+
+- <strong>
+太字。「強調」
+
+- <% has_items = customer_signed_in? ? @cart_items.present? : @guest_items.present? %>
+- cart.show
+- 三項演算子(Ruby構文)。条件(?) 真 : 偽
+もしログインできたら@cart_itemsが空じゃないか？
+そうでなければ(ゲストなら)@guest_itemsが空じゃないか？
+
+- &&とは？
+論理AND (全部trueの時実行)
+
+- @paid_paramとは？
+URLに?paid=1がついている
+
+- @order.paidとは？
+DB上の注文ステータスがpaid
+
+- include?とは？
+includesとは"別" 配列に要素が含まれているか
+
+- ! (update!)など
+失敗すると例外(exception)を投げる
+その例外がtransaction内で発生しrescueされない
+自動でrollbackされる
+
+- rollbackとは？
+途中までのDB更新を全部無かったことにして元に戻す
+
+- eとは？ rescue => e
+例外を捕まえて、その例外オブジェクトをeという変数に入れる
+・e.class : 例外の型
+・e.message : 例外メッセージ
+
+- ok= とは？
+トランザクション内の処理が成功したか失敗したかを、
+トランザクション外に持ち出すため
+「なぜ外に持ち出す？」Rollbackを避けるため。巻き戻り防止
+
+- blank? とは？(order_id.blank?)
+空かどうか判定する nil/空文字/想定外 を一括で弾ける
+
+- lock/with_lock とは？
+DBの行(レコード)をロックする
+(同じデータを同時に触れないように/二重減算を防止)
+
+- begin とは？
+(Ruby構文)
+begin
+~処理~
+rescue
+~例外時の処理~
+end
+
 
 
 
