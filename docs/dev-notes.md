@@ -867,6 +867,91 @@ rescue
 ~例外時の処理~
 end
 
+- StripeEvent.find_or_create_by!(event_id: event.id) do |se|
+二重実行防止「event.idをDBに保存し、処理済みか？を判定」
+
+- se.event_type = event.typeとは？
+これは「何おためのイベントだったか」を保存する
+
+- case event.typeとは？
+case「条件分岐」
+
+- when "checkout.session.completed"とは？
+支払い完了イベントが来た時だけ処理する
+
+- handle_checkout_completed(event.data.object)の
+event.data.objectは「そのイベントの本体データ」
+
+- backtraceとは？(e.backtrace)
+例外が起きた「呼び出し履歴(そのファイルの何行から来たか)」
+first(10)は上位10件だけログに出す
+
+- head :internal_server_errorとは？
+500を返す。stripeは再送する
+
+- handle_checkout_completed(session_obj)とは？
+checkout.session.completedが来たときに、自分のDBの注文をpaidにし、在庫を減らす
+
+- order_id = session_obj.metadata&.[]("order_id")
+metadata : Stripe側に保存できる任意の「key-value」
+Checkout Session作成時に metadata {order_id: order.id}を入れた。order_idを取り出して、自分のOrderを特定する
+
+- CheckoutControllerの役割は？
+・カートを「検証」
+・注文をpendingで保存
+・stripeが理解できる形式に変換
+・Stripe Checkoutに投げる
+
+- params[:xxx]がつく理由
+- city: customer_signed_in? ? current_customer.city : params[:city],
+- 形は 質問? 会員 : ゲスト params[:city]
+DBに保存されていない情報はparamsを使う。会員はすでにDBにあるからparamsがいらない
+
+- session[:guest_order_ids] = Array(session[:guest_order_ids])
+session[:guest_order_ids] << order.id
+session[:guest_order_ids].uniq!
+- ゲストが自分の注文だけ"order/show"で見られるようにする
+・Array(x) : nil->[] 配列->そのまま
+・<< : 配列の末尾に追加
+・uniq! : 重複防止
+
+- allow_other_host: true
+外部ドメインへのリダイレクトを許可(デフォルトが禁止)
+
+- order.update!(stripe_checkout_session_id: session_obj.id)
+- stripe_checkout_session_idを保存する
+(なぜ)Webhookで「その注文の決済か」を紐づけるため
+
+- items.map(&:product_variant)
+items.map { |i| i.product_variant } これと一緒
+
+- qty_map = items
+  .index_by { |i| i.product_variant_id }
+  .transform_values(&:quantity)
+- index_by + transform_values
+- variant_id -> 数量 高速・安全に数量を参照する
+
+- cart = {} unless cart.is_a?(Hash)
+セッションが壊れていた場合の保険
+(nil/文字列/配列) -> 空カート扱い
+
+- transform_keys(&:to_i)とは？
+型を合わせる 文字列キー -> 整数ID
+
+- Integer(v) rescue 0
+数値以外は無効扱い
+
+- rows.map
+内部用構造 -> Stripe形式への"変換"
+
+- metadata: { order_id: order.id } とは？
+metadata形式にする(Webhook側に渡すため)
+
+
+
+
+
+
 
 
 

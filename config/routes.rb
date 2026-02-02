@@ -1,5 +1,5 @@
 Rails.application.routes.draw do
-  get 'orders/show'
+  devise_for :admin_users, path: "admin"
   devise_for :customers
 
   resources :products, only: %i[index show]
