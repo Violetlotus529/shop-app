@@ -1,44 +1,55 @@
 class Admin::OrdersController < Admin::BaseController
   PER_PAGE = 20
   def index
-    page = params[:page].to_i
-    page = 1 if page < 1
+    @page = params[:page].to_i
+    @page = 1 if @page < 1
+
+    @q      = params[:q].to_s
+    @status = params[:status].to_s
+    @from   = params[:from].to_s
+    @to     = params[:to].to_s
+    @sort   = params[:sort].presence || "created_at_desc"
 
     scope = Order
-      .search_q(params[:q])
-      .status_eq(params[:status])
-      .created_from(params[:from])
-      .created_to(params[:to])
-      .sorted(params[:sort])
+      .includes(order_items: { product_variant: :product })
+      .search_q(@q)
+      .status_eq(@status)
+      .created_from(@from)
+      .created_to(@to)
+      .sorted(@sort)
 
-    total = scope.count
-    total_pages = (total.to_f / PER_PAGE).ceil
-    orders = scope.offset((page - 1) * PER_PAGE).limit(PER_PAGE)
-
-    render json: {
-      orders: orders.map { |o| index_json(o) },
-      pagination: { current: page, total_pages: total_pages }
-    }
+    @total = scope.count
+    @total_pages = (@total.to_f / PER_PAGE).ceil
+    @orders = scope
+      .offset((@page - 1) * PER_PAGE)
+      .limit(PER_PAGE)
   end
 
   def show
-    order = Order.includes(order_items: { product_variant: :product }).find(params[:id])
-    render json: show_json(order)
+    @order = Order
+      .includes(order_items: { product_variant: :product })
+      .find(params[:id])
   end
 
   def status
-    order = Order.find(params[:id])
+    @order = Order.find(params[:id])
     next_status = params[:status].to_s
 
-    return render(json: { message: "statusが欠落・定義外です" }, status: :bad_request) if next_status.blank?
-    return render(json: { message: "statusが欠落・定義外です" }, status: :bad_request) unless Order.statuses.key?(next_status)
-
-    unless order.can_transition_to?(next_status)
-      return render(json: { message: "不正なステータス遷移です" }, status: :unprocessable_entity)
+    unless Order.statuses.key?(next_status)
+      redirect_to admin_order_path(@order), alert: "statusが不正です"
+      return
     end
 
-    order.update!(status: next_status)
-    render json: { id: order.id, message: "ステータスを更新しました。" }
+    unless @order.can_transition_to?(next_status)
+      redirect_to admin_order_path(@order), alert: "不正なステータス遷移です"
+      return
+    end
+
+    if @order.update!(status: next_status)
+      redirect_to admin_order_path(@order), notice: "ステータスを更新しました"
+    else
+      redirect_to admin_order_path(@order), alert: @order.errors.full_message.join(", ")
+    end
   end
 
   private

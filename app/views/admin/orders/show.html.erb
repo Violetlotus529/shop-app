@@ -1,2 +1,48 @@
-<h1>Admin::Orders#show</h1>
-<p>Find me in app/views/admin/orders/show.html.erb</p>
+<h1>注文詳細</h1>
+
+<p>注文ID: <%= @order.id %></p>
+<P>ステータス: <strong><%= @order.status %></strong></p>
+<p>合計: <%= number_to_currency(@order.total_cents, unit: "¥", precision: 0) %></p>
+<P>作成日時: <%= l(@order.created_at) %></p>
+<p>支払日時: <%= @order.paid_at ? l(@order.paid_at) : "-" %></p>
+
+<hr>
+
+<h2>配送先</h2>
+<p><%= @order.customer_name %> (<%= @order.customer_email %>) </p>
+<p>〒<%= @order.postal_code %></p>
+<p><%= @order.prefecture %><%= @order.city %> <%= @order.address_line1 %></p>
+<p><%= @order.address_line2 %></p>
+
+<hr>
+
+<h2>商品</h2>
+<% @order.order_items.each do |item| %>
+  <% v = item.product_variant %>
+  <div>
+    <strong><%= v.product.name %></strong>
+    (<%= v.color %>/<%= v.size %>)
+    数量: <%= item.quantity %>
+    単価: <%= number_to_currency(item.unit_price_cents, unit: "¥", precision: 0) %>
+    小計: <%= number_to_currency(item.subtotal_cents, unit: "¥", precision: 0) %>
+  </div>
+  <hr>
+<% end %>
+
+<h2>ステータス更新</h2>
+<% candidates = Order.statuses.keys.select { |s| @order.can_transition_to?(s) } %>
+
+<% if candidates.empty? %>
+  <p>更新可能なステータスはありません。</p>
+<% else %>
+  <%= form_with url: status_admin_order_path(@order), method: :patch, local: true do %>
+    <select name="status">
+      <% candidates.each do |s| %>
+        <option value="<%= s %>"><%= s %></option>
+      <% end %>
+    </select>
+    <button type="submit">更新</button>
+  <% end %>
+<% end %>
+
+<p><%= link_to "一覧へ戻る", admin_orders_path %></p>

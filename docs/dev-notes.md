@@ -529,7 +529,8 @@ devise :database_authenticatable, :registerable,
 ・validatable email/passwordの最低限バリデーション
 
 - enumとは？
-状態機械の入口
+enum status: {pending: 0, paid: 1, ...}
+状態機械の入口。DBの整数<->Rubyの文字列を対応させてる
 [1/24]
 - descriptionとは？
 商品説明文
@@ -947,6 +948,64 @@ items.map { |i| i.product_variant } これと一緒
 - metadata: { order_id: order.id } とは？
 metadata形式にする(Webhook側に渡すため)
 
+- @sort = params[:sort].presence || "created_desc
+・params[:sort]が空でない場合->その値を使う
+空/nilの場合->"created_at_desc"を使う
+・presence は存在して意味のある値か判定
+
+- local: true do とは？
+画面遷移対応。URLに「?q...&status=...」が付く。
+JS無しで動く
+
+- valueとは？
+実際に送信される値。画面再表示時に「前回入力した内容を保持」するため
+
+- placeholderとは？
+入力前に薄く表示される説明文（入力すると消える）
+
+- <option...selected if ...>とは？
+- <option value="<%= s %>" <%= "selected" if @status == s %>></option>
+・value="<%= s %>"は送信される値（params[:status]に入る）
+・<%= s %>は画面に表示される文字
+・"selected" if @status == sは現在の検索条件と一致したoptionを選択状態にする。
+[つまり検索後に画面が再描写されても選んだステータスを保持]
+
+- can_transition_to?("shipped")とは？
+- models>order.rb
+この注文は次にこの状態に行っていいかを判定。
+「管理画面の事故防止ロジック」２段飛ばしさせない
+
+- |o|とは？
+orderの略
+
+- update_columnsだとなぜstatusのみ更新できるの？
+指定したカラムだけをSQLで直接更新(validates.callback)を通らない
+
+- scope=Order これはなぜ @order = Orderから変えたの？
+@orders は最終的にビューに渡す結果
+scope は検索条件を積み上げる途中段階(局所変数)
+
+- scope.countとは？
+条件に一致する全件数
+
+- offset/limitとは？ 
+- @orders = scope.offset(...).limit(...)
+その全件の中の一部(ページ分)だけを取得
+
+- l(o.created_at)とは？
+strftimeを省略する（画面ごとにバラけやすい）
+
+- mergeとは？
+Hashを合体する。今の検索条件を保持したままpageだけ変える
+
+- candidatesとは？
+candidates = Order.statuses.key.select
+{ |s| @order.can_transition_to?(s) }
+「候補」更新可能なstatusの候補リスト
+全statusの中からcan_transition_to?がtrueのものだけ
+
+- sとは？
+変数名。"pending","paid"とかのstatus文字列
 
 
 

@@ -18,8 +18,11 @@ class Order < ApplicationRecord
 
   scope :search_q, ->(q) {
     return all if q.blank?
-    s = "%#{sanitize_aql_like(q)}%"
-    where("customer_name ILIKE :s OR customer_email ILIKE :s OR CAST(id AS TEXT) ILIKE :s", s: s)
+
+    escaped = ActiveRecord::Base.sanitize_sql_like(q.to_s)
+    s = "%#{escaped}%"
+
+    where("customer_name LIKE :s OR customer_email LIKE :s OR CAST(id AS TEXT) LIKE :s", s: s)
   }
 
   scope :status_eq, ->(st) {
@@ -45,6 +48,9 @@ class Order < ApplicationRecord
     end
   }
 
+  def next_status_candidates
+    self.class.statuses.keys.select { |s| can_transition_to?(s) }
+  end
   def can_transition_to?(next_status)
     next_status = next_status.to_s
     return false unless self.class.statuses.key?(next_status)
@@ -60,5 +66,9 @@ class Order < ApplicationRecord
     }
 
     allowed.fetch(status, []).include?(next_status)
+  end
+
+  def unique_product_count
+    order_items.map { |oi| oi.product_variant.product_id }.uniq.size
   end
 end
