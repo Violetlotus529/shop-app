@@ -14,6 +14,9 @@ Rails.application.routes.draw do
   resources :orders, only: [:show]
 
   namespace :admin do
+    root to: "dashboard#show"
+    resource :dashboard, only: :show
+
     resources :inventories, only: [:index]
 
     resources :orders, only: %i[index show] do

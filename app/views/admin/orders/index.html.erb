@@ -56,18 +56,28 @@
   </thead>
 
   <tbody>
-    <% @orders.each do |o| %>
+    <% @rows.each do |r| %>
       <tr>
-        <td><%= o.id %></td>
-        <td><%= l(o.created_at) %></td>
+        <td><%= r[:id] %></td>
+        <td><%= l(r[:created_at]) %></td>
         <td>
-          <div><%= o.customer_name %></div>
-          <div style="opacity:.7;"><%= o.customer_email %></div>
+          <%= r[:customer_name] %><br>
+          <small><%= r[:customer_email] %></small>
+        <td><%= r[:status] %></td>
+        <td><%= number_to_currency(r[:total_cents], unit: "¥", precision: 0) %></td>
+        <td>
+          <% if r[:image].present? %>
+            <%= image_tag r[:image], width: 157.12, height: 180, style: "object-fit:cover; display:block;" %>
+          <% end %>
+
+          <div>
+            <%= r[:product_name] %> (<%= r[:variant_label] %>)
+            <% if r[:other_count] > 0 %>
+              / 他 <%= r[:other_count] %> 点
+            <% end %>
+          </div>
         </td>
-        <td><%= o.status %></td>
-        <td><%= number_to_currency(o.total_cents, unit: "¥", precision: 0) %></td>
-        <td><%= o.unique_product_count %>点</td>
-        <td><%= link_to "詳細", admin_order_path(o) %></td>
+        <td><%= link_to "詳細", admin_order_path(r[:id]) %></td>
       </tr>
     <% end %>
   </tbody>

@@ -1007,6 +1007,37 @@ candidates = Order.statuses.key.select
 - sとは？
 変数名。"pending","paid"とかのstatus文字列
 
+- product_count = order_items.map { |oi|
+oi.product_variant.product_id }.uniq.size
+「注文内の商品(Product)の種類数」を数えてる
+・|oi|は変数。order_itemsの各要素を１つずつ受け取る名前
+・map {...} はorder_items を product_idの配列に変換
+・sizeは件数
+
+- respond_to?(:order_number)とは？
+そのオブジェクトがorder_numberというメソッドを持っているかを返す。
+
+- @rows = @orders.map(&:admin_index_row)とは？
+- orders.controller
+@orders(Orderの配列)を一覧表示用のハッシュ配列に変換する
+
+- PER_BLOCK = 5とは？
+各ブロックで表示する最大件数が５
+
+- @pending_count = pending_scope.count
+  @today_count   = today_scope.count
+  @oos_count     = oos_scope.count
+*_scope.countは「該当する総件数」をDBに数えさせている
+
+- @pending_rows = pending_scope.limit(PER_BLOCK).map(&:admin_dashboard_row)
+・limit(PER_BLOCK)は表示用に最大5件だけ取ってくる
+・map(&:admin_dashboard_row)はOrderモデルに定義した、ダッシュボード表示の１行データを(Hash)に変換する
+[件数はcountで全体表示、一覧はlimitで少数だけ表示、
+表示用の形への整形はmodelメソッドに寄せる]
+
+- scope :pending_only, -> { where(status: statuses.fetch("pending")) }
+・statuses はenumで定義した pending->1 paid->1とか
+・fetch("pending") はHashからキー"pending"を取り出す
 
 
 

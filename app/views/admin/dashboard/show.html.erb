@@ -1,0 +1,44 @@
+<h1>管理ダッシュボード</h1>
+
+<hr>
+
+<h2>未処理注文: <%= @pending_count %>件</h2>
+<% @pending_rows.each do |r| %>
+  <div style="display:flex; gap:16px; align-items:center;">
+    <div>購入日時: <%= l(r[:created_at]) %></div>
+    <div>注文番号: <%= r[:order_number] || r[:id] %></div>
+    <div>決済方法: <%= r[:payment_method] %></div>
+    <div style="margin-left:auto;"><%= link_to "注文詳細", admin_order_path(r[:id]) %></div>
+  </div>
+  <hr>
+<% end %>
+<p><%= link_to "注文管理へ", admin_orders_path(status: "pending") %></p>
+
+<hr>
+
+<h2>今日の注文: <%= @today_count %>件</h2>
+<% @today_rows.each do |r| %>
+  <div style="display:flex; gap:16px; align-items:center;">
+    <div>購入日時: <%= l(r[:created_at]) %></div>
+    <div>注文番号: <%= r[:order_number] || r[:id] %></div>
+    <div>決済方法: <%= r[:payment_method] %></div>
+    <div style="margin-left:auto;"><%= link_to "注文詳細", admin_order_path(r[:id]) %></div>
+  </div>
+  <hr>
+<% end %>
+<p><%= link_to "注文管理へ", admin_orders_path(from: Date.current.to_s, to: Date.current.to_s) %></p>
+
+<hr>
+
+<h2>在庫切れ: <%= @oos_count %>件</h2>
+<% @oos_rows.each do |r| %>
+  <div style="display:flex; gap:16px; align-items:center;">
+    <div>商品名: <%= r[:product_name] %></div>
+    <div>color: <%= r[:color] %></div>
+    <div>size: <%= r[:size] %></div>
+  </div>
+  <hr>
+<% end %>
+<p><%= link_to "在庫管理へ", admin_inventories_path(stock_state: "out_of_stock") %></p>
+
+<%= button_to "ログアウト", destroy_admin_user_session_path, method: :delete %>

@@ -68,7 +68,56 @@ class Order < ApplicationRecord
     allowed.fetch(status, []).include?(next_status)
   end
 
-  def unique_product_count
-    order_items.map { |oi| oi.product_variant.product_id }.uniq.size
+  def admin_index_row
+    first_item = order_items.first
+    v = first_item&.product_variant
+    p = v&.product
+
+    product_count = order_items.map { |oi| oi.product_variant.product_id }.uniq.size
+    other_count = [product_count - 1, 0].max
+
+    {
+      id: id,
+      created_at: created_at,
+      order_number: (respond_to?(:order_number) ? order_number : nil),
+      status: status,
+      payment_method: "credit",
+      customer_name: customer_name,
+      customer_email: customer_email,
+      total_cents: total_cents,
+      product_name: p&.name,
+      variant_label: (v ? "#{v.color}/#{v.size}" : nil),
+      other_count: other_count,
+      image: p&.main_image_url_or_nil
+    }
+  end
+
+  def admin_primary_item
+    order_items.first
+  end
+
+  def admin_primary_variant
+    admin_primary_item&.product_variant
+  end
+
+  def admin_primary_product
+    admin_primary_variant&.product
+  end
+
+  scope :pending_only, -> { where(status: statuses.fetch("pending"))}
+
+  scope :created_today, -> {
+    from = Time.zone.now.beginning_of_day
+    to = Time.zone.now.end_of_day
+    where(created_at: from..to)
+  }
+
+  def admin_dashboard_row
+    {
+      id: id,
+      created_at: created_at,
+      order_number: (respond_to?(:order_number) ? order_number : nil),
+      payment_method: "credit"
+    }
   end
 end

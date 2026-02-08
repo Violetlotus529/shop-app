@@ -1,7 +1,55 @@
-<h1>Trash Products</h1>
+<h1>ゴミ箱</h1>
 
-<% @product.each do |product| %>
-  <div>
-    <%= link_to product.name, admin_trash_product_path(product) %>
-  </div>
+<%= form_with url: admin_trash_products_path, method: :get, local: true do %>
+  <input type="text" name="q" value="<%= @q %>" placeholder="商品名で検索">
+
+  <select name="sort">
+    <option value="deleted_at_desc" <%= "selected" if @sort == "deleted_at_desc" %>>新しい順</option>
+    <option value="deleted_at_asc"  <%= "selected" if @sort == "deleted_at_asc"  %>>古い順</option>
+  </select>
+
+  <button type="submit">検索</button>
+  <%= link_to "クリア", admin_trash_products_path %>
 <% end %>
+
+<hr>
+
+<table border="1" cellpadding="6" cellspacing="0" style="width:100%;">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>商品名</th>
+      <th>公開</th>
+      <th>更新日時</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @products.each do |p| %>
+      <tr>
+        <td><%= p.id %></td>
+        <td><%= p.name %></td>
+        <td><%= p.published? ? "公開" : "非公開" %></td>
+        <td><%= l(p.updated_at) %></td>
+        <td><%= link_to "詳細", admin_trash_product_path(p) %></td>
+      </tr>
+    <% end %>
+  </thead>
+</table>
+
+<hr>
+
+<div style="display:flex; gap:12px; align-items:center;">
+  <div>total: <%= @total %></div>
+  <div>page: <%= @page %> / <%= [@total_pages, 1].max %></div>
+
+  <div style="margin-left:auto;">
+    <% if @page > 1 %>
+      <%= link_to "前へ", admin_trash_products_path(request.query_parameters.merge(page: @page - 1)) %>
+    <% end %>
+
+    <% if @page < @total_pages %>
+      <%= link_to "次へ", admin_trash_products_path(request.query_parameters.merge(page: @page + 1)) %>
+    <% end %>
+  </div>
+<div>

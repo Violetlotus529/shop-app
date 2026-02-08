@@ -23,6 +23,8 @@ class Admin::OrdersController < Admin::BaseController
     @orders = scope
       .offset((@page - 1) * PER_PAGE)
       .limit(PER_PAGE)
+
+    @rows = @orders.map(&:admin_index_row)
   end
 
   def show
@@ -45,11 +47,8 @@ class Admin::OrdersController < Admin::BaseController
       return
     end
 
-    if @order.update!(status: next_status)
-      redirect_to admin_order_path(@order), notice: "ステータスを更新しました"
-    else
-      redirect_to admin_order_path(@order), alert: @order.errors.full_message.join(", ")
-    end
+    @order.update!(status: next_status)
+    redirect_to admin_order_path(@order), notice: "ステータスを更新しました"
   end
 
   private

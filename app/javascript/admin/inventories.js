@@ -141,6 +141,18 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     })
   }
+  
+  function synFormFromQuery(params) {
+    if (!form) return
+    for (const [key, value] of params.entries()) {
+      const el = form.querySelector(`[name="${CSS.escape(key)}]`)
+      if (el) el.value = value
+    }
+  }
 
+  const initialParams = new URLSeachParams(location.search)
+  syncFormFromQuery(initialParams)
+  loadInventories(initialParams)
+  
   loadInventories(new URLSearchParams(location.search))
 })

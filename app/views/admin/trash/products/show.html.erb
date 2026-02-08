@@ -1,10 +1,22 @@
-<h1><%= @product.name %></h1>
+<h1><%= @product.name %> の詳細</h1>
 
-<p><%= @product.description %></p>
+<p>ID: <%= @product.id %></p>
+<p>公開: <%= @product.published? ? "公開" : "非公開" %></p>
+<p>更新日時: <%= l(@product.updated_at) %></p>
+
+<hr>
+
+<h2>バリアント</h2>
+<% @product.product_variants.each do |v| %>
+  <div><%= v.color %> / <%= v.size %></div>
+<% end %>
+
+<hr>
 
 <%= button_to "復元",
-  deleted_admin_product_path(@product, deleted: false),
+  deleted_admin_product_path(@product),
   method: :patch,
-  data: { confirm: "復元しますか？" } %>
+  params: { deleted: false },
+  form: { onsubmit: "return confirm('#{@product.name} を復元しますか？')" } %>
 
 <%= link_to "一覧に戻る", admin_trash_products_path %>

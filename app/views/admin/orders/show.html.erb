@@ -17,6 +17,13 @@
 <hr>
 
 <h2>商品</h2>
+<% primary_product = @order.admin_primary_product %>
+<% if primary_product&.respond_to?(:main_image) && primary_product.main_image.attached? %>
+  <%= image_tag primary_product.main_image,
+        width: 157.12,
+        height: 180,
+        style: "object-fit:cover; display:block;" %>
+<% end %>
 <% @order.order_items.each do |item| %>
   <% v = item.product_variant %>
   <div>
@@ -30,7 +37,7 @@
 <% end %>
 
 <h2>ステータス更新</h2>
-<% candidates = Order.statuses.keys.select { |s| @order.can_transition_to?(s) } %>
+<% candidates = @order.next_status_candidates %>
 
 <% if candidates.empty? %>
   <p>更新可能なステータスはありません。</p>

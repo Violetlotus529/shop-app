@@ -1,4 +1,4 @@
-class Admin::Api::InventoriesController < Admin::Api::BaseController
+class Admin::InventoriesController < Admin::BaseController
   def index
   end
 end
