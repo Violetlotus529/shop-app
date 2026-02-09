@@ -968,6 +968,7 @@ JS無しで動く
 ・value="<%= s %>"は送信される値（params[:status]に入る）
 ・<%= s %>は画面に表示される文字
 ・"selected" if @status == sは現在の検索条件と一致したoptionを選択状態にする。
+・== は正しいか比較
 [つまり検索後に画面が再描写されても選んだステータスを保持]
 
 - can_transition_to?("shipped")とは？
@@ -1039,10 +1040,25 @@ oi.product_variant.product_id }.uniq.size
 ・statuses はenumで定義した pending->1 paid->1とか
 ・fetch("pending") はHashからキー"pending"を取り出す
 
+- sanitizeとは？
+SQLインジェクション防止
+(LIKEで意味を持つ文字を安全にエスケープする) % _ \とか
 
+- def after_sign_in_path_for(resource)
+    return admin_root_path if resource.is_a?(AdminUser)
+    super
+ログイン後の遷移先を「管理者だけに変えている」
+・is_a(AdminUser)はこのオブジェクトはAdminUserか？
+・super はDeviseが元々持っている処理をする
+管理者-> /admin それ以外(Customer)
 
+- allow_destroy: trueとは？
+- models/product.rb
+フォームから削除できるようにする(destroyを受け付ける)
 
-
+- reject_if: :all_blankとは？
+- models/product.rb
+空行を送っても作らない(追加欄の空送信防止)
 
 
 

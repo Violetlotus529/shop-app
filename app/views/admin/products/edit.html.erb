@@ -34,12 +34,48 @@
   <div>
     <%= f.submit "保存" %>
   </div>
+
+  <hr>
+
+  <h2>Variants</h2>
+
+  <%= f.fields_for :product_variants do |vf| %>
+    <div style="border:1px solid #ccc; padding:8px; margin-bottom:8px;">
+      <%= vf.hidden_field :id %>
+
+      <div>
+        <%= vf.label :color %>
+        <%= vf.text_field :color %>
+      </div>
+
+      <div>
+        <%= vf.label :size %>
+        <%= vf.text_field :size %>
+      </div>
+
+      <div>
+        <%= vf.label :sku %>
+        <%= vf.text_field :sku %>
+      </div>
+
+      <div>
+        <%= vf.check_box :_destroy %>
+        <%= vf.label :_destroy, "削除" %>
+      </div>
+    </div>
+  <% end %>
+
+  <div>
+    <%= f.submit "保存" %>
+  </div>
 <% end %>
+
 
 <%= button_to "削除",
   deleted_admin_product_path(@product),
   method: :patch,
-  data: { confirm: "削除しますか？" } %>
+  params: { deleted: true },
+  form: { onsubmit: "return confirm('削除しますか？')" } %>
 
 <%= link_to "戻る", admin_product_path(@product) %> |
 <%= link_to "一覧へ", admin_products_path %>

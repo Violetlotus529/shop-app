@@ -1,2 +1,77 @@
-<h1>Products#index</h1>
-<p>Find me in app/views/products/index.html.erb</p>
+<h1>商品一覧</h1>
+
+<%= form_with url: admin_products_path, method: :get, local: true do %>
+  <div style="display:flex; gap:12px; flex-wrap; align-items:flex-end;">
+    <div>
+      <label>検索</label><br>
+      <input type="text" name="q" value="<%= @q %>" placeholder="商品名 / 説明">
+    </div>
+
+    <div>
+      <label>公開状態</label><br>
+      <select name="status">
+        <option value="all"        <%= "selected" if @status == "all" %>>全て</option>
+        <option value="published"  <%= "selected" if @status == "published" %>>公開</option>
+        <option value="unpublished"<%= "selected" if @status == "unpublished" %>>非公開</option>
+      </select>
+    </div>
+
+    <div>
+      <label>並び替え</label><br>
+      <select name="sort">
+        <option value="updated_at_desc" <%= "selected" if @sort == "updated_at_desc" %>>新しい順</option>
+        <option value="updated_at_asc"  <%= "selected" if @sort == "updated_at_asc"  %>>古い順</option>
+      </select>
+    </div>
+
+    <div>
+      <button type="submit">検索</button>
+      <%= link_to "クリア", admin_products_path %>
+    </div>
+  </div>
+<% end %>
+
+<hr>
+
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>名前</th>
+      <th>価格</th>
+      <th>公開</th>
+      <th>更新日時</th>
+      <th></th>
+    </tr>
+  <thead>
+
+  <tbody>
+    <% @products.each do |product| %>
+      <tr>
+        <td><%= product.id %></td>
+        <td><%= link_to product.name, admin_product_path(product) %></td>
+        <td><%= number_to_currency(product.price_cents, unit: "¥", precision: 0) %></td>
+        <td><%= product.published ? "公開" : "非公開" %></td>
+        <td><%= l(product.updated_at) %></td>
+        <td><%= link_to "編集", edit_admin_product_path(product) %></td>
+      <tr>
+    <% end %>
+  </tbody>
+</table>
+
+<hr>
+
+<div style="display:flex; gap:12px; align-items:center;">
+  <div>total: <%= @total %></div>
+  <div>page: <%= @page %> / <%= [@total_pages, 1].max %></div>
+
+  <div style="margin-left:auto;">
+    <% if @page > 1 %>
+      <%= link_to "前へ", admin_products_path(request.query_parameters.merge(page: @page - 1)) %>
+    <% end %>
+
+    <% if @page < @total_pages %>
+      <%= link_to "次へ", admin_products_path(request.query_parameters.merge(page: @page + 1)) %>
+    <% end %>
+  </div>
+</div>
