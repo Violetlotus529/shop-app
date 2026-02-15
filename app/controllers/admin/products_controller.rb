@@ -69,6 +69,7 @@ class Admin::ProductsController < ApplicationController
       :description,
       :price_cents,
       :published,
+      :category,
       product_variants_attributes: [
         :id,
         :color,

@@ -69,3 +69,8 @@ group :test do
   gem "capybara"
   gem "selenium-webdriver"
 end
+
+group :development do
+  gem "letter_opener"
+  gem "letter_opener_web"
+end

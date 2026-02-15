@@ -1,7 +1,14 @@
 Rails.application.routes.draw do
+  root to: "products#index"
+  
   devise_for :admin_users, path: "admin"
   devise_for :customers
 
+  resource :my_page, only: :show, controller: "my_pages"
+
+  if Rails.env.development?
+    mount LetterOpenerWeb::Engine, at: "/letter_opener"
+  end
   resources :products, only: %i[index show]
   resource :cart, only: [:show]
   resources :cart_items, only: %i[create update destroy]
@@ -10,7 +17,9 @@ Rails.application.routes.draw do
     post :stripe, to: "stripe#create"
   end
 
-  resource :checkout, only: [:create]
+  resource :checkout, only: [:create] do
+    get :canceled
+  end
   resources :orders, only: [:show]
 
   namespace :admin do

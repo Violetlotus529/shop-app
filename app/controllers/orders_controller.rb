@@ -11,8 +11,12 @@ class OrdersController < ApplicationController
 
     @paid_param = params[:paid].present?
 
-    if !customer_signed_in? && @paid_param && @order.paid?
-      session.delete(:cart)
+    if @paid_param && @order.paid?
+      if customer_signed_in?
+        current_customer.cart_items.destroy_all
+      else
+        session.delete(:cart)
+      end
     end
 
     @waiting_payment_confirmation = @paid_param && !@order.paid?

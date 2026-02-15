@@ -1061,6 +1061,49 @@ SQLインジェクション防止
 空行を送っても作らない(追加欄の空送信防止)
 
 
+- inventories.stock と product_variants.stock違い 在庫数をどこのテーブルが持つか。
+どこを基準に在庫データを持ってくるか決めるため(在庫の真実)
+
+- delegateとは？
+- delegate :stock, to: :inventory, allow_nil:true
+このメソッド呼び出しを、別オブジェクトに転送する
+
+- マイグレーションファイルとは？(migrate)
+DBの構造(テーブル/カラム/制約)を変更するもの
+
+- バックフィルとは？(backfill)
+既にあるデータを、新しい場所へ埋め直す作業(修正時使用)
+
+- existingとは？
+- cart items controller
+既に存在しているカート行 (同じvariantをカートに２回追加したとき、新規レコードを作成せず既存の数量に加算する)
+
+- cart = session[:cart]
+  cart = {} unless cart.is_a?(Hash)とは？
+正しい形 : session[:cart] = { "3" => 2, "5" => 1 }
+間違った形 : session[:cart] = nil
+「Hashじゃなければ {}空にする」
+
+- qty_map = cart.each_with_object(Hash.new(0))do 
+  |(k, v), h|
+    vid = k.to_i
+    q = Integer(v) rescue 0
+    h[vid] += q
+[sessionのデータを安全な形(qty_map)に変換]
+- each_with_object(Hash.new(0))とは？
+存在しないキーは自動で0を返す
+- |(k,v),h|とは？
+k = variant_id (文字列)
+v = quantity (文字列 or 数値)
+h = 出力先Hash (qty_map)
+- vid = k.to_iとは？
+sessionは文字列キーなので整数に変換 "3" -> 3
+- q = Integer(v) rescue 0とは？
+数量を整数に変換 "2" -> 2, "abc" -> エラー -> 0  
+- h[vid] += qとは？
+同じvariantが出てきても合算する
+cart = { "3" => 2, "3" => 1 } 結果:qty_map="3">3 
+
 
 
 

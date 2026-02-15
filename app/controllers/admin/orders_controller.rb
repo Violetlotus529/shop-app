@@ -47,11 +47,17 @@ class Admin::OrdersController < Admin::BaseController
       return
     end
 
-    @order.update!(status: next_status)
+    if next_status == "canceled"
+      @order.cancel_and_restore_stock!
+    else
+      @order.update!(status: next_status)
+    end
+
     redirect_to admin_order_path(@order), notice: "ステータスを更新しました"
   end
 
   private
+
 
   def index_json(o)
     {

@@ -1,9 +1,16 @@
 <h1>Cart</h1>
 
+<% if @has_stock_error %>
+  <p style="color: #c00;">
+    ※選択された商品は在庫が不足しております。数量を調整してください。
+  </p>
+<% end %>
+
 <% if customer_signed_in? %>
-  <% @cart_items.each do |item| %>
-    <% v = item.product_variant %>
-    <% subtotal_cents = item.quantity * v.product.price_cents %>
+  <% @cart_rows.each do |row| %>
+    <% v = row[:variant] %>
+    <% qty = row[:quantity] %>
+    <% subtotal_cents = row[:subtotal_cents] %>
 
     <div>
       <strong><%= v.product.name %></strong>
@@ -14,11 +21,11 @@
         <%= number_to_currency(subtotal_cents, unit: "¥", precision: 0) %>
       </div>
 
-      <%= form_with url: cart_item_path(item), method: :patch, local: true do %>
+      <%= form_with url: cart_item_path(row[:key]), method: :patch, local: true do %>
         <input
           type="number"
           name="quantity"
-          value="<%= item.quantity %>"
+          value="<%= qty %>"
           min="1"
         >
         <button type="submit">数量更新</button>
@@ -36,7 +43,7 @@
   <% end %>
 
 <% else %>
-  <% @guest_items.each do |row| %>
+  <% @cart_rows.each do |row| %>
     <% v = row[:variant] %>
     <% qty = row[:quantity] %>
     <% subtotal_cents = row[:subtotal_cents] %>
@@ -79,7 +86,8 @@
   </strong>
 </div>
 
-<% has_items = customer_signed_in? ? @cart_items.present? : @guest_items.present? %>
+<% has_items = @cart_rows.present? %>
+<% can_checkout = has_items && !@has_stock_error %>
 
 <% if has_items %>
   <hr>
@@ -94,9 +102,13 @@
       <div><input name="address_line2" placeholder="建物名"></div>
     <% end %>
 
-    <button type="submit" style="margin-top: 16px;">
+    <button type="submit" style="margin-top: 16px;" <%= "disabled" unless can_checkout %>>
       決済へ進む
     </button>
+
+    <% unless can_checkout %>
+      <p style="color:#c00;">在庫不足の商品があるため決済できません。</p>
+    <% end %>
   <% end %>
 <% else %>
   <p>カートは空です。</p>

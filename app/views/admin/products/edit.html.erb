@@ -22,6 +22,13 @@
   </div>
 
   <div>
+    <%= f.label :category, "カテゴリ" %><br>
+    <%= f.select :category,
+        Product::CATEGORIES.map { |c| [c, c] },
+        include_blank: false %>
+  </div>
+
+  <div>
     <%= f.label :price_cents, "価格（円）" %><br>
     <%= f.number_field :price_cents %>
   </div>

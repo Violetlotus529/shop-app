@@ -1,19 +1,24 @@
 <h1><%= @product.name %></h1>
 <p><%= @product.description %></p>
 
-<%= form_with url: cart_items_path, method: :post, local: true do |f| %>
-  <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
+<% sold_out = @variants.none? { |v| v.stock.to_i > 0 } %>
 
-  <select name="product_variant_id" required>
+<%= form_with url: cart_items_path, method: :post, local: true do %>
+  <select name="product_variant_id" required <%= "disabled" if sold_out %>>
     <% @variants.each do |v| %>
       <% label = "#{v.color} / #{v.size}" %>
-      <% if v.stock > 0 %>
+
+      <% if v.stock.to_i > 0 %>
         <option value="<%= v.id %>"><%= label %></option>
       <% else %>
-        <option disabled><%= label %> (SOLD OUT)</option>
+        <option value="<%= v.id %>" disabled><%= label %> (SOLD OUT)</option>
       <% end %>
     <% end %>
   </select>
+
+  <% if sold_out %>
+    <p style="color: #c00;">SOLD OUT</p>
+  <% end %>
 
   <input type="number" name="quantity" value="1" min="1">
   <button type="submit">カートに追加</button>

@@ -7,9 +7,13 @@ class Webhooks::StripeController < ApplicationController
 
     event = Stripe::Webhook.construct_event(payload, sig, secret)
 
-    StripeEvent.find_or_create_by!(event_id: event.id) do |se|
-      se.event_type = event.type
+    se = StripeEvent.find_or_initialize_by(event_id: event.id)
+    if se.persisted?
+      head :ok
+      return
     end
+    se.event_type = event.type
+    se.save!
 
     case event.type
     when "checkout.session.completed"
@@ -35,22 +39,31 @@ class Webhooks::StripeController < ApplicationController
     return if order.nil?
 
     order.with_lock do
-      return if order.paid?
-
-      ok = false
+      return if order.paid? || order.failed?
 
       begin
         Order.transaction do
-          # 1) 在庫チェック（ロック）
-          order.order_items.each do |item|
-            v = ProductVariant.lock.find(item.product_variant_id)
-            raise "stock shortage" if v.stock < item.quantity
+          qty_by_variant_id =
+            order.order_items
+                 .group_by(&:product_variant_id)
+                 .transform_values { |items| items.sum(&:quantity) }
+
+          variant_ids = qty_by_variant_id.keys.sort
+
+          variants = ProductVariant.lock.where(id: variant_ids).index_by(&:id)
+
+          # 在庫チェック
+          variant_ids.each do |vid|
+            v = variants.fetch(vid)
+            required = qty_by_variant_id.fetch(vid)
+            raise "stock shortage" if v.stock < required
           end
 
-          # 2) 減算
-          order.order_items.each do |item|
-            v = ProductVariant.lock.find(item.product_variant_id)
-            v.update!(stock: v.stock - item.quantity)
+          # 減算
+          variant_ids.each do |vid|
+            v = variants.fetch(vid)
+            required = qty_by_variant_id.fetch(vid)
+            v.update!(stock: v.stock - required)
           end
 
           # 3) paid確定
@@ -63,13 +76,11 @@ class Webhooks::StripeController < ApplicationController
           order.customer.cart_items.destroy_all if order.customer_id.present?
         end
 
-        ok = true
       rescue => e
-        Rails.logger.error("[webhook] checkout_completed failed: #{e.class} #{e.message}")
-        ok = false
-      end
+        Rails.logger.error("[webhook] failed: #{e.class} #{e.message}")
 
-      order.update!(status: :failed) unless ok
+        order.update!(status: :failed)
+      end
     end
   end
 end

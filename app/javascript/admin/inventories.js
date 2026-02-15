@@ -142,17 +142,15 @@ document.addEventListener("DOMContentLoaded", () => {
     })
   }
   
-  function synFormFromQuery(params) {
+  function syncFormFromQuery(params) {
     if (!form) return
     for (const [key, value] of params.entries()) {
-      const el = form.querySelector(`[name="${CSS.escape(key)}]`)
+      const el = form.querySelector(`[name="${CSS.escape(key)}"]`)
       if (el) el.value = value
     }
   }
 
-  const initialParams = new URLSeachParams(location.search)
+  const initialParams = new URLSearchParams(location.search)
   syncFormFromQuery(initialParams)
   loadInventories(initialParams)
-  
-  loadInventories(new URLSearchParams(location.search))
 })

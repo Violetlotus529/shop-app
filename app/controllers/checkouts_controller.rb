@@ -56,9 +56,15 @@ class CheckoutsController < ApplicationController
     redirect_to cart_path, alert: "商品が見つかりません"
   rescue ArgumentError
     redirect_to cart_path, alert: "数量が不正です"
-  rescue => e
-    Rails.logger.error(e.full_message)
-    raise
+  rescue RuntimeError => e
+    if e.message == "stock shortage"
+      redirect_to cart_path, alert: "在庫が不足してます。数量を調整してください"
+    else
+      raise
+    end
+  end
+
+  def canceled
   end
 
   private
@@ -66,20 +72,29 @@ class CheckoutsController < ApplicationController
   def build_cart_rows!
     if customer_signed_in?
       items = current_customer.cart_items.includes(product_variant: :product)
-      variants = items.map(&:product_variant)
-      qty_map = items.index_by { |i| i.product_variant_id }.transform_values(&:quantity)
+
+      variants = items.map(&:product_variant).uniq
+      qty_map = items
+        .group_by(&:product_variant_id)
+        .transform_values { |rows| rows.sum { |i| i.quantity.to_i } }
     else
       cart = session[:cart]
       cart = {} unless cart.is_a?(Hash)
+
       variants = ProductVariant.includes(:product).where(id: cart.keys)
-      qty_map = cart.transform_keys(&:to_i).transform_values { |v| Integer(v) rescue 0 }
+
+      qty_map = cart.each_with_object(Hash.new(0)) do |(k, v), h|
+        vid = k.to_i
+        q = Integer(v) rescue 0
+        h[vid] += q
+      end
     end
 
     variants.each do |v|
       raise ActiveRecord::RecordNotFound if v.deleted? || v.product.deleted? || !v.product.published?
       qty = qty_map[v.id].to_i
       raise ArgumentError if qty < 1
-      raise ArgumentError if v.stock < qty
+      raise "stock shortage" if v.stock < qty
     end
 
     variants.map do |v|

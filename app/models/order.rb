@@ -56,7 +56,7 @@ class Order < ApplicationRecord
     return false unless self.class.statuses.key?(next_status)
 
     allowed = {
-      "pending"    => %w[paid canceled failed],
+      "pending"    => %w[paid failed],
       "paid"       => %w[processing canceled],
       "processing" => %w[shipped canceled],
       "shipped"    => %w[completed],
@@ -119,5 +119,30 @@ class Order < ApplicationRecord
       order_number: (respond_to?(:order_number) ? order_number : nil),
       payment_method: "credit"
     }
+  end
+
+  def cancel_and_restore_stock!
+    with_lock do
+      return if canceled?
+      should_restore = paid? || processing?
+
+      Order.transaction do
+        if should_restore
+          qty_by_variant_id =
+            order_items
+              .group_by(&:product_variant_id)
+              .transform_values { |items| items.sum(&:quantity) }
+
+          variant_ids = qty_by_variant_id.keys.sort
+          variants = ProductVariant.lock.where(id: variant_ids).index_by(&:id)
+
+          variant_ids.each do |vid|
+            v = variants.fetch(vid)
+            v.update!(stock: v.stock + qty_by_variant_id.fetch(vid))
+          end
+        end
+        update!(status: :canceled)
+      end
+    end
   end
 end

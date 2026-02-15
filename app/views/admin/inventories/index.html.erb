@@ -1,7 +1,7 @@
 <h1>Inventory</h1>
 
-<form id="inventory-filters">
-  <input type="text" name="q" placeholder="商品名 / color / size">
+<%= form_with url: admin_inventories_path, method: :get, local: true do %>
+  <input type="text" name="q" value="<%= @q %>" placeholder="商品名 / color / size">
 
   <select name="stock_state">
     <option value="">all</option>
@@ -11,29 +11,41 @@
   </select>
 
   <select name="sort">
-    <option value="">updated_at_desc</option>
-    <option value="stock_asc">stock_asc</option>
-    <option value="stock_desc">stock_desc</option>
+    <option value="updated_at_desc" <%= "selected" if @sort == "updated_at_decs" %>>updated_at_desc</option>
+    <option value="stock_asc"       <%= "selected" if @sort == "stock_asc" %>>stock_asc</option>
+    <option value="stock_desc"      <%= "selected" if @sort == "stock_desc" %>>stock_desc</option>
   </select>
 
   <button type="submit">検索</button>
-</form>
+<% end %>
+
+<hr>
 
 <button type="button" id="save-inventories">保存</button>
 
 <div id="pagination"></div>
 
-<table>
+<table border="1" cellpadding="6" cellspacing="0" style="width:100%;">
   <thead>
     <tr>
       <th>Product</th>
+      <th>SKU</th>
       <th>Color</th>
       <th>Size</th>
       <th>Stock</th>
+      <th>Updated</th>
     </tr>
   </thead>
-
-  <tbody id="inventories-body">
-    <tr><td colspan="4">Loading...</td><tr>
+  <tbody>
+    <% @variants.each do |v| %>
+      <tr>
+        <td><%= v.product&.name %></td>
+        <td><%= v.sku %></td>
+        <td><%= v.color %></td>
+        <td><%= v.size %></td>
+        <td><%= v.stock %></td>
+        <td><%= l(v.updated_at) %></td>
+      <tr>
+    <% end %>
   </tbody>
 </table>

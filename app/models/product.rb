@@ -13,6 +13,18 @@ class Product < ApplicationRecord
   scope :active,    -> { where(deleted: false) }
   scope :published, -> { where(published: true, deleted: false) }
   scope :deleted_only, -> { where(deleted: true) }
+  scope :public_visible, -> { where(published: true, deleted: false) }
+  scope :category_eq, ->(cat) {
+    return all if cat.blank? || cat == "all"
+    where(category: cat)
+  }
+
+  scope :sorted_public, ->(sort) {
+    case sort
+    when "updated_at_asc"  then order(updated_at: :asc)
+    else                        order(updated_at: :desc)
+    end
+  }
   scope :search_q, ->(q) {
     return all if q.blank?
     s = "%#{ActiveRecord::Base.sanitize_sql_like(q.to_s)}%"
@@ -42,4 +54,14 @@ class Product < ApplicationRecord
     return nil unless main_image.attached?
     main_image
   end
+
+  CATEGORIES = %w[tops bottoms outer bag goods].freeze
+
+  validates :category, presence: true, inclusion: { in: CATEGORIES }
+
+  scope :category_eq, ->(cat) {
+    return all if cat.blank? || cat == "all"
+    return none unless CATEGORIES.include?(cat)
+    where(category: cat)
+  }
 end
