@@ -1,13 +1,22 @@
 class OrdersController < ApplicationController
+  before_action :authenticate_customer!, only: :index
+  
+  def index
+    @orders =
+      current_customer
+        .orders
+        .includes(:order_items)
+        .order(created_at: :desc)
+  end
+  
   def show
-    @order = Order.includes(order_items: { product_variant: :product }).find(params[:id])
-
-    if customer_signed_in?
-      raise ActiveRecord::RecordNotFound unless @order.customer_id == current_customer.id
-    else
-      guest_ids = Array(session[:guest_order_ids]).map(&:to_i)
-      raise ActiveRecord::RecordNotFound unless guest_ids.include?(@order.id)
-    end
+    @order = 
+      if customer_signed_in?
+        current_customer.orders.includes(order_items: { product_variant: :product }).find(params[:id])
+      else
+        guest_ids = Array(session[:guest_order_ids]).map(&:to_i)
+        raise ActiveRecord::RecordNotFound unless guest_ids.include?(@order.id)
+      end
 
     @paid_param = params[:paid].present?
 

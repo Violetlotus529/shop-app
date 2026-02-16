@@ -4,7 +4,7 @@ Rails.application.routes.draw do
   devise_for :admin_users, path: "admin"
   devise_for :customers
 
-  resource :my_page, only: :show, controller: "my_pages"
+  resource :my_page, only: %i[show update], controller: "my_pages"
 
   if Rails.env.development?
     mount LetterOpenerWeb::Engine, at: "/letter_opener"
@@ -20,7 +20,7 @@ Rails.application.routes.draw do
   resource :checkout, only: [:create] do
     get :canceled
   end
-  resources :orders, only: [:show]
+  resources :orders, only: %i[index show]
 
   namespace :admin do
     root to: "dashboard#show"

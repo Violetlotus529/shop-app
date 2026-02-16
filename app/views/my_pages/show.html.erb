@@ -1,2 +1,40 @@
-<h1>MyPages#show</h1>
-<p>Find me in app/views/my_pages/show.html.erb</p>
+<%= form_with model: @customer, url: my_page_path, method: :patch do |f| %>
+  <%= render "shared/form_errors", object: @customer %>
+
+  <div>
+    <%= f.label :name %>
+    <%= f.text_field :name %>
+  </div>
+
+  <div>
+    <%= f.label :postal_code %>
+    <%= f.text_field :postal_code %>
+  </div>
+
+  <div>
+    <%= f.label :prefecture %>
+    <%= f.text_field :prefecture %>
+  </div>
+
+  <div>
+    <%= f.label :city %>
+    <%= f.text_field :city %>
+  </div>
+
+  <div>
+    <%= f.label :address_line1 %>
+    <%= f.text_field :address_line1 %>
+  </div>
+
+  <div>
+    <%= f.label :address_line2 %>
+    <%= f.text_field :address_line2 %>
+  </div>
+
+  <div>
+    <%= f.label :phone_number %>
+    <%= f.text_field :phone_number %>
+  </div>
+
+  <%= f.submit "変更内容を保存" %>
+<% end %>

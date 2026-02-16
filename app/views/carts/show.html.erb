@@ -33,7 +33,7 @@
 
       <%= button_to(
             "削除",
-            cart_item_path(item),
+            cart_item_path(row[:key]),
             method: :delete,
             data: { turbo_confirm: "削除しますか？" }
           ) %>

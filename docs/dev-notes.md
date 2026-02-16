@@ -1104,7 +1104,53 @@ sessionは文字列キーなので整数に変換 "3" -> 3
 同じvariantが出てきても合算する
 cart = { "3" => 2, "3" => 1 } 結果:qty_map="3">3 
 
+- resources :my_page, only: %i[show update]とは？
+(ルート生成) GET   /my_page -> show
+           PATCH /my_page  -> update
+/my_pageという１件だけのリソース。idがない
 
+- before_action :authenticate_customer!とは？
+Deviseが提供してるメソッド
+役割「ログインしてない場合 -> 自動でログインページへ移動」
+
+- customer = current_customer
+Deviseが提供してるヘルパー
+意味「ログイン中のユーザーを取得。
+     それを@customerとしてビューに渡す」
+
+- if @customer.update(customer_params)
+    redirect_to my_page_path, notice: "Updated."
+  else
+    flash.now[:alert] = "Fix errors."
+    render :show, status: :unprocessable_entity
+  end
+成功「DB更新、/my_pageにリダイレクト」
+失敗「同じ画面を再表示、エラーを表示」
+
+- render :show, status: :unprocessable_entityとは
+render : 別のviewを再描写する(URLは変わらない)
+status: :unprocessable_entity : HTTPステータス 422
+
+- def customer_params
+    params.require(:customer).permit(...)
+  end
+許可したカラムだけ更新可能にする
+
+- render "shared/form_errors", object: @customer
+partial呼び出し 中でobject(@customer)として受け取っている
+
+- object&.errors&.any?とは？
+objectが存在しerrorがあり１件以上ある。
+
+- pluralize(object.errors.count, "error")とは？
+英語の単数を自動切り替え(2件以上はerrors)
+
+- partialとは？
+再利用できるビュー部品「_付きファイル」
+(例) app/views/shared/_form_errors.html.erb
+これは <%= render "shared/form_errors" %>で呼び出す
+
+object(変数)で@customerが使える object = @customer
 
 
 
