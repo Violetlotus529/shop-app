@@ -58,6 +58,6 @@
 
 <hr>
 
-<div>
+<% if !customer_signed_in? && @paid_params %>
   <%= link_to "カートへ戻る", cart_path %>
-</div>
+<% end %>

@@ -13,8 +13,23 @@ class Order < ApplicationRecord
     shipped: 3,
     completed: 4,
     canceled: 5,
-    failed: 6
+    failed: 6,
+    refunded: 7
   }
+
+  def refunded?
+    status == "refunded"
+  end
+
+  def status_label
+    case status
+    when "pending"  then "支払い待ち"
+    when "paid"     then "支払い済み"
+    when "failed"   then "失敗"
+    when "refunded" then "返金済み"
+    else status
+    end
+  end
 
   scope :search_q, ->(q) {
     return all if q.blank?

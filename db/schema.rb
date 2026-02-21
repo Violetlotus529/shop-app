@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_02_13_052314) do
+ActiveRecord::Schema[7.1].define(version: 2026_02_21_093731) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -90,6 +90,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_13_052314) do
     t.string "city"
     t.string "address_line1"
     t.string "address_line2"
+    t.string "phone_number"
     t.index ["email"], name: "index_customers_on_email", unique: true
     t.index ["reset_password_token"], name: "index_customers_on_reset_password_token", unique: true
   end
@@ -122,6 +123,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_13_052314) do
     t.string "address_line2"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "refunded_at"
+    t.string "stripe_refund_id"
     t.index ["customer_id"], name: "index_orders_on_customer_id"
     t.index ["stripe_checkout_session_id"], name: "index_orders_on_stripe_checkout_session_id"
     t.index ["stripe_payment_intent_id"], name: "index_orders_on_stripe_payment_intent_id"
@@ -157,6 +160,9 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_13_052314) do
     t.datetime "processed_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.text "last_error"
+    t.integer "retry_count", default: 0, null: false
+    t.datetime "last_attempted_at"
     t.index ["event_id"], name: "index_stripe_events_on_event_id", unique: true
   end
 

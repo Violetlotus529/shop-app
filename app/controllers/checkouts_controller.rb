@@ -52,6 +52,8 @@ class CheckoutsController < ApplicationController
     )
     order.update!(stripe_checkout_session_id: session_obj.id)
     redirect_to session_obj.url, allow_other_host: true
+  rescue ActiveRecord::RecordInvalid
+    redirect_to cart_path, alert: "入力内容に不備があります"
   rescue ActiveRecord::RecordNotFound
     redirect_to cart_path, alert: "商品が見つかりません"
   rescue ArgumentError

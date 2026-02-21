@@ -1,25 +1,28 @@
 <h1>Orders</h1>
-
-<table>
-  <thead>
-    <tr>
-      <th>Ordered at</th>
-      <th>Order #</th>
-      <th>Total</th>
-      <th>Status</th>
-      <th></th>
-    </tr>
-  </thead>
-
-  <tbody>
-    <% @orders.each do |order| %>
+<% if @orders.blank? %>
+  <p>注文履歴はありません。</p>
+<% else %>
+  <table>
+    <thead>
       <tr>
-        <td><%= l(order.created_at, format: :short) %></td>
-        <td><%= order.id %></td>
-        <td><%= number_to_currency(order.total_cents / 100.0, unit: "¥") %></td>
-        <td><%= order.status %></td>
-        <td><%= link_to "Details", order_path(order) %></td>
+        <th>Ordered at</th>
+        <th>Order #</th>
+        <th>Total</th>
+        <th>Status</th>
+        <th></th>
       </tr>
-    <% end %>
-  </tbody>
-</table>
+    </thead>
+
+    <tbody>
+      <% @orders.each do |order| %>
+        <tr>
+          <td><%= l(order.created_at, format: :short) %></td>
+          <td><%= order.id %></td>
+          <td><%= number_to_currency(order.total_cents, unit: "¥", precision: 0) %></td>
+          <td><%= order.status_label %></td>
+          <td><%= link_to "詳細", order_path(order) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>

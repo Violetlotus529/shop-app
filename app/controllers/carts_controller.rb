@@ -2,16 +2,19 @@ class CartsController < ApplicationController
   def show
     if customer_signed_in?
       items = current_customer.cart_items.includes(product_variant: :product)
-      
+
       @cart_rows = items.map do |item|
         v = item.product_variant
-        qty = item.quantity.to_i
+        qty = [item.quantity.to_i, 0].max
+        unit = v.product.price_cents.to_i
         {
           key: item.id,
           variant: v,
           quantity:  qty,
-          subtotal_cents: v.product.price_cents * qty,
-          stock_ok: v.stock >= qty
+          subtotal_cents: unit * qty,
+          stock_ok: v.stock >= qty,
+          available_stock: v.stock,
+          insufficient: v.stock < qty
         }
       end
       @total_cents = @cart_rows.sum { |r| r[:subtotal_cents] }
@@ -24,13 +27,16 @@ class CartsController < ApplicationController
         .where(id: cart.keys)
 
       @cart_rows = variants.map do |v|
-        qty = cart[v.id.to_s].to_i
+        qty = [cart[v.id.to_s].to_i, 0].max
+        unit = v.product.price_cents.to_i
         {
           key: v.id,
           variant: v,
           quantity: qty,
-          subtotal_cents: v.product.price_cents * qty,
-          stock_ok: v.stock >= qty
+          subtotal_cents: unit * qty,
+          stock_ok: v.stock >= qty,
+          available_stock: v.stock,
+          insufficient: v.stock < qty
         }
       end
 

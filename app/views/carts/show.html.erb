@@ -21,14 +21,28 @@
         <%= number_to_currency(subtotal_cents, unit: "¥", precision: 0) %>
       </div>
 
+      <% if row[:insufficient] %>
+        <p style="color: #c00;">
+          在庫不足 : 在庫 <%= row[:available_stock] %> / 現在 <%= qty %>
+        </p>
+      <% end %>
+
       <%= form_with url: cart_item_path(row[:key]), method: :patch, local: true do %>
         <input
           type="number"
           name="quantity"
           value="<%= qty %>"
           min="1"
+          max="<%= row[:available_stock] %>"
         >
         <button type="submit">数量更新</button>
+      <% end %>
+
+      <% if row[:insufficient] && row[:available_stock] > 0 %>
+        <%= button_to "在庫数を合わせる",
+              cart_item_path(row[:key]),
+              method: :patch,
+              params: { quantity: row[:available_stock] } %>
       <% end %>
 
       <%= button_to(
@@ -57,19 +71,34 @@
         <%= number_to_currency(subtotal_cents, unit: "¥", precision: 0) %>
       </div>
 
-      <%= form_with url: cart_item_path(v.id), method: :patch, local: true do %>
+      <% if row[:insufficient] %>
+        <p style="color: #c00;">
+          在庫不足 : 在庫 <%= row[:available_stock] %> / 現在 <%= qty %>
+        </p>
+      <% end %>
+
+      <%= form_with url: cart_item_path(row[:key]), method: :patch, local: true do %>
         <input
           type="number"
           name="quantity"
           value="<%= qty %>"
           min="1"
+          max="<%= row[:available_stock] %>"
         >
         <button type="submit">数量更新</button>
       <% end %>
 
+      <% if row[:insufficient] && row[:available_stock] > 0 %>
+        <%= button_to "在庫数を合わせる",
+              cart_item_path(row[:key]),
+              method: :patch,
+              params: { quantity: row[:available_stock] } %>
+      <% end %>
+
+
       <%= button_to(
             "削除",
-            cart_item_path(v.id),
+            cart_item_path(row[:key]),
             method: :delete,
             data: { turbo_confirm: "削除しますか？" }
           ) %>

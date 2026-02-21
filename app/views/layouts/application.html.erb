@@ -2,15 +2,6 @@
 <html>
   <head>
     <title>ShopApp</title>
-    <%# header right area %>
-    <div class="header-actions">
-      <% if customer_signed_in? %>
-        <%= link_to "MyPage", my_page_path, class: "header-link" %>
-        <%= button_to "Logout", destroy_customer_session_path, method: :delete, class: "header-link" %>
-      <% else %>
-        <%= link_to "Login", new_customer_session_path, class: "header-link" %>
-      <% end %>
-    <div>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
@@ -19,18 +10,19 @@
   </head> 
 
   <body>
-    <% if flash[:notice].present? %>
-      <div style="padding:10px; margin:10px 0; border:1px solid #ddd;">
-        <%= flash[:notice] %>
-      </div>
-    <% end %>
+    <header>
+      <div class="header-actions">
+        <% if customer_signed_in? %>
+          <%= link_to "MyPage", my_page_path, class: "header-link" %>
+          <%= link_to "Orders", orders_path, class: "header-link" %>
+          <%= button_to "Logout", destroy_customer_session_path, method: :delete, class: "header-link" %>
+        <% else %>
+          <%= link_to "Login", new_customer_session_path, class: "header-link" %>
+        <% end %>
+      <div>
+    </header>
 
-    <% if flash[:alert].present? %>
-      <div style="padding:10px; margin:10px 0; border:1px solid #f99; color: #b00;">
-        <%= flash[:alert] %>
-      </div>
-    <% end %>
-
+    <%= render "shared/flash" %>
     <%= yield %>
   </body>
 </html>

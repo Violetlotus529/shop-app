@@ -1152,6 +1152,93 @@ objectが存在しerrorがあり１件以上ある。
 
 object(変数)で@customerが使える object = @customer
 
+- @ がつく変数（インスタンス変数）
+controller -> view へ渡すとき使う変数
 
+- strong Params
+「ホワイトリスト化」permitとか
+ユーザーから送られてきた値の中で、許可したものだけ使う
+params.require(:customer).permit(:name, :postal_code)
 
+- ユニーク保存とは？
+同じ意味のレコードをDBで一件しか保存できないようにする事
+(uniqueなど)
 
+- idempotency(冪等性)とは？
+同じリクエストを何回実行しても、結果が1回実行した時と同じ
+StripeEvent(event_id) 同じイベントを二重に処理しない
+order.with_lock + return if order.paid? || order.failed? 同じ注文を二重にしない
+
+- defined(order)とは？
+order(変数)がこのスコープ内で定義されているか判定する
+
+- order.present?とは？
+present? = 値が「空でない」
+nil.present? = false
+orderがnilではない事をチェックする
+
+- seとは？
+- stripe.controller
+StripeEventレコードの変数名。
+今回受け取ったStipeイベント(event_id)を記録して、
+処理状態を追跡する箱
+
+- return if order.paid || order.failed? || order.refunded?
+再実行防止。Webhookは再送されるため、必要
+
+- begin
+    Order.transaction do
+在庫減算・注文更新を原子処理する(途中で失敗したらロールバック)
+
+- raise "stock shortage" if v.stock < required
+「在庫チェック」在庫不足なら例外を投げて処理中断
+rescue側で返金分岐
+
+- order.update!(
+    status: :paid,
+    paid_at: Time.current,
+    stripe_payment_intent_id: session_object.
+                                  payment_intent
+注文をpaidにする
+Stripeのpayment_intentを保存する(返金時に必要)
+
+- se.update!(processed_at: Time.current, 
+            last_error: nil
+StripeEventに「処理済み」を記録
+再送されない
+
+- rescue => e
+在庫不足などの例外全部を拾う
+
+- if e.message = "stock shortage"
+在庫不足のみ返金対応(在庫不足の例外か？)
+
+- payment_intent = session_obj.payment_intent
+stripeで実際に支払われたID(PaymentIntent)
+
+- refund = Stripe::Refund.create(
+    { payment_intent: payment_intent },
+    { idempotency_key: "refund:order:#{order.id}}
+「返金実行」
+idempotency_keyにより二重返金防止
+
+- order.update!(
+    status: :refunded,
+    refunded_at: Time.current,
+    stripe_refund_id: refund.id
+「DBに返金情報保存」
+注文ステータスを refundedに
+返金日時・Stripe返金IDを保存
+
+- return
+ここで終了。下の処理へ行かせない
+
+支払い成功イベント受信
+  ↓
+order取得 + lock
+  ↓
+在庫OK → paid確定
+在庫NG → refund実行 → refunded
+その他エラー → failed
+  ↓
+StripeEventに processed 記録
