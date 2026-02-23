@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  get 'guest_orders/lookup'
   root to: "products#index"
   
   devise_for :admin_users, path: "admin"
@@ -20,7 +21,9 @@ Rails.application.routes.draw do
   resource :checkout, only: [:create] do
     get :canceled
   end
+
   resources :orders, only: %i[index show]
+  resource :guest_order_lookup, only: %i[new create], controller: :guest_orders
 
   namespace :admin do
     root to: "dashboard#show"

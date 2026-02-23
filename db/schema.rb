@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_02_21_093731) do
+ActiveRecord::Schema[7.1].define(version: 2026_02_22_110143) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -125,6 +125,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_21_093731) do
     t.datetime "updated_at", null: false
     t.datetime "refunded_at"
     t.string "stripe_refund_id"
+    t.string "guest_order_number"
     t.index ["customer_id"], name: "index_orders_on_customer_id"
     t.index ["stripe_checkout_session_id"], name: "index_orders_on_stripe_checkout_session_id"
     t.index ["stripe_payment_intent_id"], name: "index_orders_on_stripe_payment_intent_id"

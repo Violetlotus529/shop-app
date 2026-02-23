@@ -61,3 +61,8 @@
 <% if !customer_signed_in? && @paid_params %>
   <%= link_to "カートへ戻る", cart_path %>
 <% end %>
+
+<% if @order.customer_id.nil? %>
+  <p>注文番号: <strong><%= @order.guest_order_number %></strong></p>
+  <%= link_to "注文を照会する", new_guest_order_lookup_path %>
+<% end %>

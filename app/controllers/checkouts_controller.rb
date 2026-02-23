@@ -7,6 +7,7 @@ class CheckoutsController < ApplicationController
 
     order = Order.create!(
       customer: (customer_signed_in? ? current_customer : nil),
+      guest_order_number: (customer_signed_in? ? nil :SecureRandom.alphanumeric(12)),
       status: :pending,
       total_cents: total_cents,
       customer_name: customer_signed_in? ? current_customer.name : params[:customer_name],

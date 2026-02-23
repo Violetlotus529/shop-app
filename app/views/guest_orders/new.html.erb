@@ -1,0 +1,11 @@
+<h1>ゲスト注文照会</h1>
+
+<%= form_with url: guest_order_lookup_path, method: :post, local: true do %>
+  <div>
+    <input name="email" placeholder="Email" required>
+  </div>
+  <div>
+    <input name="guest_order_number" placeholder="注文番号" required>
+  </div>
+  <button type="submit">照会</button>
+<% end %>

@@ -12,12 +12,44 @@
   <body>
     <header>
       <div class="header-actions">
+        <% if current_page?(root_path) %>
+          <span class="header-link is-current">Products</span>
+        <% else %>
+          <%= link_to "Products", root_path, class: "header-link" %>
+        <% end %>
+
+        <% if current_page?(cart_path) %>
+          <span class="header-link is-current">Cart</span>
+        <% else %>
+          <%= link_to "Cart", cart_path, class: "header-link" %>
+        <% end %>
+
         <% if customer_signed_in? %>
-          <%= link_to "MyPage", my_page_path, class: "header-link" %>
-          <%= link_to "Orders", orders_path, class: "header-link" %>
+          <% if current_page?(my_page_path) %>
+            <span class="header-link is-current">MyPage</span>
+          <% else %>
+            <%= link_to "MyPage", my_page_path, class: "header-link" %>
+          <% end %>
+
+          <% if current_page?(orders_path) %>
+            <span class="header-link is-current">Orders</span>
+          <% else %>
+            <%= link_to "Orders", orders_path, class: "header-link" %>
+          <% end %>
+
           <%= button_to "Logout", destroy_customer_session_path, method: :delete, class: "header-link" %>
         <% else %>
-          <%= link_to "Login", new_customer_session_path, class: "header-link" %>
+          <% if current_page?(new_customer_session_path) %>
+            <span class="header-link is-current">Login</span>
+          <% else %>
+            <%= link_to "Login", new_customer_session_path, class: "header-link" %>
+          <% end %>
+
+          <% if current_page?(new_guest_order_lookup_path) %>
+            <span class="header-link is-current">Guest Lookup</span>
+          <% else %>
+            <%= link_to "Guest Lookup", new_guest_order_lookup_path, class: "header-link" %>
+          <% end %>
         <% end %>
       <div>
     </header>
