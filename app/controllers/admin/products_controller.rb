@@ -1,4 +1,4 @@
-class Admin::ProductsController < ApplicationController
+class Admin::ProductsController < Admin::BaseController
   PER_PAGE = 20
   before_action :set_product, only: %i[show edit update]
   def index

@@ -1,0 +1,8 @@
+<nav class="admin-nav">
+  <%= link_to "Dashboard", admin_root_path, class: "header-link" %>
+  <%= link_to "Products", admin_products_path, class: "header-link" %>
+  <%= link_to "Orders", admin_orders_path, class: "header-link" %>
+  <%= link_to "Inventories", admin_inventories_path, class: "header-link" %>
+
+  <%= button_to "Logout", destroy_admin_user_session_path, method: :delete, class: "header-link" %>
+</nav>

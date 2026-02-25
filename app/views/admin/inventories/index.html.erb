@@ -1,17 +1,17 @@
 <h1>Inventory</h1>
 
-<%= form_with url: admin_inventories_path, method: :get, local: true do %>
+<%= form_with url: admin_inventories_path, method: :get, local: true, id: "inventory-filters" do %>
   <input type="text" name="q" value="<%= @q %>" placeholder="商品名 / color / size">
 
   <select name="stock_state">
     <option value="">all</option>
-    <option value="in_stock">in_stock</option>
-    <option value="out_of_stock">out_of_stock</option>
-    <option value="low">low (1-4)</option>
+    <option value="in_stock"     <%= "selected" if params[:stock_state] == "in_stock" %>>in_stock</option>
+    <option value="out_of_stock" <%= "selected" if params[:stock_state] == "out_of_stock" %>>out_of_stock</option>
+    <option value="low"          <%= "selected" if params[:stock_state] == "low" %>>low (1-4)</option>
   </select>
 
   <select name="sort">
-    <option value="updated_at_desc" <%= "selected" if @sort == "updated_at_decs" %>>updated_at_desc</option>
+    <option value="updated_at_desc" <%= "selected" if @sort == "updated_at_desc" %>>updated_at_desc</option>
     <option value="stock_asc"       <%= "selected" if @sort == "stock_asc" %>>stock_asc</option>
     <option value="stock_desc"      <%= "selected" if @sort == "stock_desc" %>>stock_desc</option>
   </select>
@@ -21,7 +21,12 @@
 
 <hr>
 
-<button type="button" id="save-inventories">保存</button>
+<label>
+  編集モード
+  <input id="inventory-edit-toggle" type="checkbox">
+</label>
+
+<button type="button" id="save-inventories" style="display:none;" disabled>保存</button>
 
 <div id="pagination"></div>
 
@@ -29,23 +34,10 @@
   <thead>
     <tr>
       <th>Product</th>
-      <th>SKU</th>
       <th>Color</th>
       <th>Size</th>
       <th>Stock</th>
-      <th>Updated</th>
     </tr>
   </thead>
-  <tbody>
-    <% @variants.each do |v| %>
-      <tr>
-        <td><%= v.product&.name %></td>
-        <td><%= v.sku %></td>
-        <td><%= v.color %></td>
-        <td><%= v.size %></td>
-        <td><%= v.stock %></td>
-        <td><%= l(v.updated_at) %></td>
-      <tr>
-    <% end %>
-  </tbody>
+  <tbody id="inventories-body"></tbody>
 </table>

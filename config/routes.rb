@@ -1,5 +1,4 @@
 Rails.application.routes.draw do
-  get 'guest_orders/lookup'
   root to: "products#index"
   
   devise_for :admin_users, path: "admin"
