@@ -1242,3 +1242,13 @@ order取得 + lock
 その他エラー → failed
   ↓
 StripeEventに processed 記録
+
+- email = params[:email].to_s.strip.downcaseとは？
+・to_s nilが来ても""にする。未入力でもエラーにしない
+・strip 前後の空白を除去
+・downcase 大文字を小文字に統一
+[DBに保存されているcustomer_emailと厳密一致で比較する]
+
+- 
+
+  
