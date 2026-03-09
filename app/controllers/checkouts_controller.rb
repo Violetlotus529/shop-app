@@ -1,5 +1,6 @@
 class CheckoutsController < ApplicationController
   def create
+    Rails.logger.warn("[stripe] api_key_present=#{Stripe.api_key.present?} env_present=#{ENV['STRIPE_SECRET_KEY'].present?}")
     rows = build_cart_rows!
 
     total_cents = rows.sum { |r| r[:subtotal_cents] }

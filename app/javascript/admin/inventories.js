@@ -1,4 +1,3 @@
-console.log("[inventories] FILE EVALUATED");
 document.addEventListener("turbo:load", () => {  try {
   const tbody = document.getElementById("inventories-body")
   if (!tbody) return
@@ -41,7 +40,6 @@ document.addEventListener("turbo:load", () => {  try {
     // 再描画後に編集状態を反映
     setEditing(!!(editToggle && editToggle.checked))
 
-    console.log("[inventories] rendered rows", tbody.querySelectorAll("tr").length)
   }
 
   function collectUpdates() {

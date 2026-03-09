@@ -9,9 +9,9 @@ class MyPagesController < ApplicationController
     @customer = current_customer
 
     if @customer.update(customer_params)
-      redirect_to my_page_path, notice: "Updated."
+      redirect_to my_page_path, notice: "更新しました"
     else
-      flash.now[:alert] = "Fix errors."
+      flash.now[:alert] = "入力内容を確認してください"
       render :show, status: :unprocessable_entity
     end
   end

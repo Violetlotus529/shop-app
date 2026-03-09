@@ -16,7 +16,105 @@
   </div>
 <% end %>
 
-<hr>
+<hr><section class="section">
+  <div class="stack-24">
+    <div class="page-head">
+      <h1 class="h1">注文詳細</h1>
+      <%= link_to "戻る", (customer_signed_in? ? orders_path : new_guest_order_lookup_path), class: "btn btn--secondary" %>
+    </div>
+
+    <% if @waiting_payment_confirmation %>
+      <div class="notice">
+        支払い確認中です。数秒後に再読み込みしてください。
+      </div>
+    <% end %>
+
+    <% if @paid_param %>
+      <% if @order.paid? %>
+        <div class="notice notice--success">
+          支払い完了
+        </div>
+      <% else %>
+        <div class="notice">
+          支払い完了を受信しました。確認中です。
+        </div>
+      <% end %>
+    <% elsif @order.failed? %>
+      <div class="notice notice--danger">
+        支払いに失敗しました。
+      </div>
+    <% end %>
+
+    <div class="order">
+      <div class="order__summary">
+        <div class="card stack-12">
+          <div class="card__row">
+            <div class="text-sm text-muted">注文ID</div>
+            <div class="card__value"><%= @order.id %></div>
+          </div>
+
+          <div class="card__row">
+            <div class="text-sm text-muted">ステータス</div>
+            <div class="card__value"><%= @order.status_label %></div>
+          </div>
+
+          <div class="card__row">
+            <div class="text-sm text-muted">合計</div>
+            <div class="card__value">
+              <%= number_to_currency(@order.total_cents, unit: "¥", precision: 0) %>
+            </div>
+          </div>
+
+          <div class="text-sm text-muted">tax included</div>
+
+          <% if @order.customer_id.nil? %>
+            <hr class="divider">
+
+            <div class="stack-8">
+              <div class="text-sm text-muted">ゲスト注文番号</div>
+              <div class="card__value"><%= @order.guest_order_number %></div>
+              <%= link_to "注文を照会する", new_guest_order_lookup_path, class: "link" %>
+            </div>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="order__items">
+        <div class="card">
+          <h2 class="h2">購入アイテム</h2>
+
+          <div class="stack-12">
+            <% @order.order_items.each do |item| %>
+              <% v = item.product_variant %>
+
+              <div class="order-item">
+                <div class="order-item__title">
+                  <%= v.product.name %>
+                  <span class="text-sm text-muted">(<%= v.color %> / <%= v.size %>)</span>
+                </div>
+
+                <div class="order-item__meta text-sm text-muted">
+                  数量: <%= item.quantity %>
+                </div>
+
+                <div class="order-item__prices text-sm">
+                  単価: <%= number_to_currency(item.unit_price_cents, unit: "¥", precision: 0) %>
+                  <span class="text-muted">/</span>
+                  小計: <%= number_to_currency(item.subtotal_cents, unit: "¥", precision: 0) %>
+                </div>
+              </div>
+            <% end %>
+          </div>
+
+          <% if !customer_signed_in? && @paid_param %>
+            <hr class="divider">
+            <%= link_to "カートへ戻る", cart_path, class: "btn btn--secondary" %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
 <div>
   <strong>注文ID:</strong>
@@ -58,7 +156,7 @@
 
 <hr>
 
-<% if !customer_signed_in? && @paid_params %>
+<% if !customer_signed_in? && @paid_param %>
   <%= link_to "カートへ戻る", cart_path %>
 <% end %>
 

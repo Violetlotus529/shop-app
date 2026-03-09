@@ -93,6 +93,7 @@ class CartItemsController < ApplicationController
 
       if qty > v.stock
         redirect_to cart_path, alert: "在庫数を超えています (在庫: #{v.stock} / 要求: #{qty}) "
+        return
       end
 
       cart[key] = qty

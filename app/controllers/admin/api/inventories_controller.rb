@@ -1,6 +1,10 @@
 class Admin::Api::InventoriesController < Admin::BaseController
   def index
-    scope = ProductVariant.includes(:product)
+    scope = ProductVariant
+      .includes(:product)
+      .joins(:product)
+      .where(deleted: false)
+      .where(products: { deleted: false })
 
     if params[:q].present?
       q = "%#{params[:q]}%"
@@ -72,7 +76,7 @@ class Admin::Api::InventoriesController < Admin::BaseController
         stock_i = Integer(stock_raw)
         raise ActiveRecord::RecordInvalid.new(ProductVariant.new), "stock must be >= 0" if stock_i < 0
 
-        variant = ProductVariant.find(id_raw)
+        variant = ProductVariant.where(deleted: false).find(id_raw)
         variant.update!(stock: stock_i)
         updated_count += 1
       end

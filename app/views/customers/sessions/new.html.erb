@@ -1,26 +1,34 @@
-<h2>Log in</h2>
+<section class="section">
+  <h1 class="h1">ログイン</h1>
 
-<%= form_for(resource, as: resource_name, url: session_path(resource_name)) do |f| %>
-  <div class="field">
-    <%= f.label :email %><br />
-    <%= f.email_field :email, autofocus: true, autocomplete: "email" %>
-  </div>
+  <div class="stack-24">
+    <%= form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: "form" }) do |f| %>
+      <div class="form__row">
+        <%= f.label :email, "Email", class: "form__label" %>
+        <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "form__input" %>
+      </div>
 
-  <div class="field">
-    <%= f.label :password %><br />
-    <%= f.password_field :password, autocomplete: "current-password" %>
-  </div>
+      <div class="form__row">
+        <%= f.label :password, "パスワード", class: "form__label" %>
+        <%= f.password_field :password, autocomplete: "current-password", class: "form__input" %>
+      </div>
 
-  <% if devise_mapping.rememberable? %>
-    <div class="field">
-      <%= f.check_box :remember_me %>
-      <%= f.label :remember_me %>
+      <% if devise_mapping.rememberable? %>
+        <div class="form__row">
+          <label class="check">
+            <%= f.check_box :remember_me %>
+            <span class="check__label">ログイン状態を保持</span>
+          </label>
+        </div>
+      <% end %>
+
+      <div class="stack-12" style="max-width: 320px;">
+        <%= f.submit "ログイン", class: "btn btn--primary btn--block" %>
+      </div>
+    <% end %>
+
+    <div class="auth-links">
+      <%= render "customers/shared/links" %>
     </div>
-  <% end %>
-
-  <div class="actions">
-    <%= f.submit "Log in" %>
   </div>
-<% end %>
-
-<%= render "customers/shared/links" %>
+</section>

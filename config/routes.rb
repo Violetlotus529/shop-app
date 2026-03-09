@@ -40,8 +40,9 @@ Rails.application.routes.draw do
       end
     end
 
-    resources :products do
+    resources :products, except: [:destroy] do
       patch :deleted, on: :member
+      delete :purge_main_image, on: :member
     end
 
     namespace :trash do

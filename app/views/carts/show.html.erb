@@ -1,86 +1,157 @@
-<h1>Cart</h1>
+<section class="section">
+  <h1 class="h1">Cart</h1>
 
-<% if @has_stock_error %>
-  <p style="color: #c00;">
-    ※選択された商品は在庫が不足しております。数量を調整してください。
-  </p>
-<% end %>
+  <div class="stack-24">
+    <% if @has_stock_error %>
+      <div class="notice notice--danger">
+        在庫不足の商品があります。数量を調整してください。
+      </div>
+    <% end %>
 
-<% @cart_rows.each do |row| %>
-  <% v   = row[:variant] %>
-  <% qty = row[:quantity] %>
+    <% has_items = @cart_rows.present? %>
+    <% can_checkout = has_items && !@has_stock_error %>
 
-  <div>
-    <strong><%= v.product.name %></strong>
-    (<%= v.color %>/<%= v.size %>)
+    <% if has_items %>
+      <div class="cart">
+        <div class="cart__items stack-12">
+          <% @cart_rows.each do |row| %>
+            <% v   = row[:variant] %>
+            <% qty = row[:quantity] %>
 
-    <div>
-      小計:
-      <%= number_to_currency(row[:subtotal_cents], unit: "¥", precision: 0) %>
-    </div>
+            <div class="cart-item">
+              <div class="cart-item__main">
+                <div class="cart-item__title">
+                  <%= v.product.name %>
+                  <span class="cart-item__variant text-sm text-muted">(<%= v.color %> / <%= v.size %>)</span>
+                </div>
 
-    <% if row[:available_stock] == 0 %>
-      <p style="color: #c00;">在庫切れ</p>
+                <div class="cart-item__meta">
+                  <div class="text-sm text-muted">小計</div>
+                  <div class="cart-item__subtotal">
+                    <%= number_to_currency(row[:subtotal_cents], unit: "¥", precision: 0) %>
+                  </div>
+                </div>
+              </div>
 
-    <% elsif row[:insufficient] %>
-      <p style="color: #c00;">
-        在庫不足 : 在庫 <%= row[:available_stock] %> / 現在 <%= qty %>
-      </p>
-      <p style="color: #c00;">数量を減らしてから決済してください。</p>
+              <div class="cart-item__actions">
+                <div class="cart-item__status stack-8">
+                  <div class="text-sm text-muted">
+                    INSTOCK <%= row[:available_stock] %> items
+                  </div>
 
+                  <% if row[:available_stock] == 0 %>
+                    <div class="text-sm" style="color:#c00;">SOLD OUT</div>
+                  <% elsif row[:insufficient] %>
+                    <div class="text-sm" style="color:#c00;">
+                      在庫不足（在庫: <%= row[:available_stock] %> / 現在: <%= qty %>）
+                    </div>
+                    <div class="text-sm" style="color:#c00;">数量を減らしてから決済してください。</div>
+                  <% end %>
+                </div>
+
+                <div class="cart-item__qty">
+                  <%= form_with url: cart_item_path(row[:key]), method: :patch, local: true, class: "cart-item__qty-form" do %>
+                    <input
+                      class="form__input cart-item__qty-input"
+                      type="number"
+                      name="quantity"
+                      value="<%= qty %>"
+                      min="1"
+                      max="<%= row[:available_stock] %>"
+                    >
+                    <button type="submit" class="btn btn--secondary">数量更新</button>
+                  <% end %>
+                </div>
+
+                <%= button_to "削除",
+                      cart_item_path(row[:key]),
+                      method: :delete,
+                      data: { turbo_confirm: "削除しますか？" },
+                      class: "btn btn--danger" %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+
+        <aside class="cart__summary">
+          <div class="summary-card stack-12">
+            <div class="summary-card__row">
+              <div class="text-sm text-muted">合計</div>
+              <div class="summary-card__total">
+                <%= number_to_currency(@total_cents, unit: "¥", precision: 0) %>
+              </div>
+            </div>
+
+            <div class="text-sm text-muted">tax included</div>
+
+            <%= form_with url: checkout_path, method: :post, local: true, data: { turbo: false }, class: "stack-12" do %>
+              <% unless customer_signed_in? %>
+                <div class="stack-12">
+                  <div class="h2">購入者情報（ゲスト）</div>
+
+                  <div class="form__row">
+                    <label class="form__label" for="customer_name">氏名</label>
+                    <input id="customer_name" class="form__input" name="customer_name" required>
+                  </div>
+
+                  <div class="form__row">
+                    <label class="form__label" for="customer_email">Email</label>
+                    <input id="customer_email" class="form__input" name="customer_email" required>
+                  </div>
+
+                  <div class="form__row">
+                    <label class="form__label" for="postal_code">郵便番号</label>
+                    <input
+                      id="postal_code"
+                      class="form__input"
+                      name="postal_code"
+                      inputmode="numeric"
+                      pattern="\d{3}-?\d{4}"
+                      placeholder="123-4567"
+                      required
+                    >
+                  </div>
+
+                  <div class="form__row">
+                    <label class="form__label" for="prefecture">都道府県</label>
+                    <input id="prefecture" class="form__input" name="prefecture" required>
+                  </div>
+
+                  <div class="form__row">
+                    <label class="form__label" for="city">市区町村</label>
+                    <input id="city" class="form__input" name="city" required>
+                  </div>
+
+                  <div class="form__row">
+                    <label class="form__label" for="address_line1">番地</label>
+                    <input id="address_line1" class="form__input" name="address_line1" required>
+                  </div>
+
+                  <div class="form__row">
+                    <label class="form__label" for="address_line2">建物名（任意）</label>
+                    <input id="address_line2" class="form__input" name="address_line2">
+                  </div>
+                </div>
+              <% end %>
+
+              <button type="submit" class="btn btn--primary btn--block" data-disable-with="処理中..." <%= "disabled" unless can_checkout %>>
+                決済へ進む
+              </button>
+
+              <% unless can_checkout %>
+                <div class="text-sm" style="color:#c00;">
+                  在庫不足の商品があるため決済できません。
+                </div>
+              <% end %>
+            <% end %>
+          </div>
+        </aside>
+      </div>
     <% else %>
-      <%= form_with url: cart_item_path(row[:key]), method: :patch, local: true do %>
-        <input
-          type="number"
-          name="quantity"
-          value="<%= qty %>"
-          min="1"
-          max="<%= row[:available_stock] %>"
-        >
-        <button type="submit">数量更新</button>
-      <% end %>
+      <div class="notice">カートは空です。</div>
+      <div class="stack-12" style="max-width:320px;">
+        <%= link_to "商品一覧へ", products_path, class: "btn btn--primary btn--block" %>
+      </div>
     <% end %>
-
-    <%= button_to "削除",
-          cart_item_path(row[:key]),
-          method: :delete,
-          data: { turbo_confirm: "削除しますか？" } %>
   </div>
-
-  <hr>
-<% end %>
-
-<div style="margin-top: 20px;">
-  <strong>
-    合計金額:
-    <%= number_to_currency(@total_cents, unit: "¥", precision: 0) %>
-  </strong>
-</div>
-
-<% has_items = @cart_rows.present? %>
-<% can_checkout = has_items && !@has_stock_error %>
-
-<% if has_items %>
-  <hr>
-  <%= form_with url: checkout_path, method: :post, local: true do %>
-    <% unless customer_signed_in? %>
-      <div><input name="customer_name" placeholder="氏名" required></div>
-      <div><input name="customer_email" placeholder="Email" required></div>
-      <div><input name="postal_code" inputmode="numeric" pattern="\d{3}-?\d{4}" placeholder="郵便番号" required></div>
-      <div><input name="prefecture" placeholder="都道府県" required></div>
-      <div><input name="city" placeholder="市区町村" required></div>
-      <div><input name="address_line1" placeholder="番地" required></div>
-      <div><input name="address_line2" placeholder="建物名"></div>
-    <% end %>
-
-    <button type="submit" style="margin-top: 16px;" <%= "disabled" unless can_checkout %>>
-      決済へ進む
-    </button>
-
-    <% unless can_checkout %>
-      <p style="color:#c00;">在庫不足の商品があるため決済できません。</p>
-    <% end %>
-  <% end %>
-<% else %>
-  <p>カートは空です。</p>
-<% end %>
+</section>

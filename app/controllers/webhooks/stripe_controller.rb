@@ -1,5 +1,4 @@
-class Webhooks::StripeController < ApplicationController
-  skip_before_action :verify_authenticity_token
+class Webhooks::StripeController < ActionController::API
 
   def create
     payload = request.raw_post

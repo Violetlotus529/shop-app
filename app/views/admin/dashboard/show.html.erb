@@ -1,44 +1,136 @@
-<h1>管理ダッシュボード</h1>
-
-<hr>
-
-<h2>未処理注文: <%= @pending_count %>件</h2>
-<% @pending_rows.each do |r| %>
-  <div style="display:flex; gap:16px; align-items:center;">
-    <div>購入日時: <%= l(r[:created_at]) %></div>
-    <div>注文番号: <%= r[:order_number] || r[:id] %></div>
-    <div>決済方法: <%= r[:payment_method] %></div>
-    <div style="margin-left:auto;"><%= link_to "注文詳細", admin_order_path(r[:id]) %></div>
+<div class="a-page a-page--dashboard">
+  <div class="a-head a-head--dashboard">
+    <h1 class="a-title a-title--dashboard">管理ダッシュボード</h1>
   </div>
-  <hr>
-<% end %>
-<p><%= link_to "注文管理へ", admin_orders_path(status: "pending") %></p>
 
-<hr>
+  <div class="a-grid a-grid--dashboard">
+    <!-- 未処理注文 -->
+    <section class="a-card a-card--dashboard">
+      <div class="a-cardHead">
+        <h2 class="a-sectionTitle">未処理注文</h2>
+        <span class="a-sectionCount"><%= @pending_count %>件</span>
+      </div>
 
-<h2>今日の注文: <%= @today_count %>件</h2>
-<% @today_rows.each do |r| %>
-  <div style="display:flex; gap:16px; align-items:center;">
-    <div>購入日時: <%= l(r[:created_at]) %></div>
-    <div>注文番号: <%= r[:order_number] || r[:id] %></div>
-    <div>決済方法: <%= r[:payment_method] %></div>
-    <div style="margin-left:auto;"><%= link_to "注文詳細", admin_order_path(r[:id]) %></div>
+      <div class="a-tableWrap a-tableWrap--dashboard">
+        <table class="a-table a-table--dashboard">
+          <thead>
+            <tr>
+              <th>注文日時</th>
+              <th>注文番号</th>
+              <th>決済</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @pending_rows.each do |r| %>
+              <tr>
+                <td><%= l(r[:created_at]) %></td>
+                <td><%= r[:order_number] || r[:id] %></td>
+                <td><%= r[:payment_method] %></td>
+                <td>
+                  <%= link_to "詳細", admin_order_path(r[:id]), class: "a-btn a-btn--sm" %>
+                </td>
+              </tr>
+            <% end %>
+
+            <% if @pending_rows.blank? %>
+              <tr>
+                <td colspan="4" class="a-empty">未処理注文はありません</td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="a-dashboardFooter">
+        <%= link_to "一覧へ", admin_orders_path(status: "pending"), class: "a-btn a-btn--primary a-btn--sm" %>
+      </div>
+    </section>
+
+    <!-- 今日の注文 -->
+    <section class="a-card a-card--dashboard">
+      <div class="a-cardHead">
+        <h2 class="a-sectionTitle">今日の注文</h2>
+        <span class="a-sectionCount"><%= @today_count %>件</span>
+      </div>
+
+      <div class="a-tableWrap a-tableWrap--dashboard">
+        <table class="a-table a-table--dashboard">
+          <thead>
+            <tr>
+              <th>注文日時</th>
+              <th>注文番号</th>
+              <th>決済</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @today_rows.each do |r| %>
+              <tr>
+                <td><%= l(r[:created_at]) %></td>
+                <td><%= r[:order_number] || r[:id] %></td>
+                <td><%= r[:payment_method] %></td>
+                <td>
+                  <%= link_to "詳細", admin_order_path(r[:id]), class: "a-btn a-btn--sm" %>
+                </td>
+              </tr>
+            <% end %>
+
+            <% if @today_rows.blank? %>
+              <tr>
+                <td colspan="4" class="a-empty">本日の注文はありません</td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="a-dashboardFooter">
+        <%= link_to "一覧へ",
+              admin_orders_path(from: Date.current.to_s, to: Date.current.to_s),
+              class: "a-btn a-btn--primary a-btn--sm" %>
+      </div>
+    </section>
+
+    <!-- 在庫切れ -->
+    <section class="a-card a-card--dashboard">
+      <div class="a-cardHead">
+        <h2 class="a-sectionTitle">在庫切れ</h2>
+        <span class="a-sectionCount"><%= @oos_count %>件</span>
+      </div>
+
+      <div class="a-tableWrap a-tableWrap--dashboard">
+        <table class="a-table a-table--dashboard">
+          <thead>
+            <tr>
+              <th>商品名</th>
+              <th>Color</th>
+              <th>Size</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @oos_rows.each do |r| %>
+              <tr>
+                <td><%= r[:product_name] %></td>
+                <td><%= r[:color] %></td>
+                <td><%= r[:size] %></td>
+              </tr>
+            <% end %>
+
+            <% if @oos_rows.blank? %>
+              <tr>
+                <td colspan="3" class="a-empty">在庫切れはありません</td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="a-dashboardFooter">
+        <%= link_to "一覧へ",
+              admin_inventories_path(stock_state: "out_of_stock"),
+              class: "a-btn a-btn--primary a-btn--sm" %>
+      </div>
+    </section>
   </div>
-  <hr>
-<% end %>
-<p><%= link_to "注文管理へ", admin_orders_path(from: Date.current.to_s, to: Date.current.to_s) %></p>
-
-<hr>
-
-<h2>在庫切れ: <%= @oos_count %>件</h2>
-<% @oos_rows.each do |r| %>
-  <div style="display:flex; gap:16px; align-items:center;">
-    <div>商品名: <%= r[:product_name] %></div>
-    <div>color: <%= r[:color] %></div>
-    <div>size: <%= r[:size] %></div>
-  </div>
-  <hr>
-<% end %>
-<p><%= link_to "在庫管理へ", admin_inventories_path(stock_state: "out_of_stock") %></p>
-
-<%= button_to "ログアウト", destroy_admin_user_session_path, method: :delete %>
+</div>

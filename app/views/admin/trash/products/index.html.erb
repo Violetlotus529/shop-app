@@ -1,55 +1,99 @@
-<h1>ゴミ箱</h1>
+<div class="a-page">
+  <div class="a-head">
+    <h1 class="a-title">ゴミ箱</h1>
+  </div>
 
-<%= form_with url: admin_trash_products_path, method: :get, local: true do %>
-  <input type="text" name="q" value="<%= @q %>" placeholder="商品名で検索">
+  <div class="a-card">
+    <%= form_with url: admin_trash_products_path, method: :get, local: true do %>
+      <div class="a-filters">
+        <div class="a-field">
+          <label class="a-label">検索</label>
+          <input
+            class="a-input"
+            type="text"
+            name="q"
+            value="<%= @q %>"
+            placeholder="商品名で検索"
+          >
+        </div>
 
-  <select name="sort">
-    <option value="deleted_at_desc" <%= "selected" if @sort == "deleted_at_desc" %>>新しい順</option>
-    <option value="deleted_at_asc"  <%= "selected" if @sort == "deleted_at_asc"  %>>古い順</option>
-  </select>
+        <div class="a-field">
+          <label class="a-label">並び替え</label>
+          <select class="a-select" name="sort">
+            <option value="deleted_at_desc" <%= "selected" if @sort == "deleted_at_desc" %>>新しい順</option>
+            <option value="deleted_at_asc"  <%= "selected" if @sort == "deleted_at_asc"  %>>古い順</option>
+          </select>
+        </div>
 
-  <button type="submit">検索</button>
-  <%= link_to "クリア", admin_trash_products_path %>
-<% end %>
+        <div class="a-field a-field--btn">
+          <button type="submit" class="a-btn a-btn--primary">検索</button>
+        </div>
 
-<hr>
-
-<table border="1" cellpadding="6" cellspacing="0" style="width:100%;">
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>商品名</th>
-      <th>公開</th>
-      <th>更新日時</th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    <% @products.each do |p| %>
-      <tr>
-        <td><%= p.id %></td>
-        <td><%= p.name %></td>
-        <td><%= p.published? ? "公開" : "非公開" %></td>
-        <td><%= l(p.updated_at) %></td>
-        <td><%= link_to "詳細", admin_trash_product_path(p) %></td>
-      </tr>
-    <% end %>
-  </thead>
-</table>
-
-<hr>
-
-<div style="display:flex; gap:12px; align-items:center;">
-  <div>total: <%= @total %></div>
-  <div>page: <%= @page %> / <%= [@total_pages, 1].max %></div>
-
-  <div style="margin-left:auto;">
-    <% if @page > 1 %>
-      <%= link_to "前へ", admin_trash_products_path(request.query_parameters.merge(page: @page - 1)) %>
-    <% end %>
-
-    <% if @page < @total_pages %>
-      <%= link_to "次へ", admin_trash_products_path(request.query_parameters.merge(page: @page + 1)) %>
+        <div class="a-field a-field--btn">
+          <%= link_to "クリア", admin_trash_products_path, class: "a-btn" %>
+        </div>
+      </div>
     <% end %>
   </div>
-<div>
+
+  <div class="a-card a-card--table">
+    <div class="a-tableWrap">
+      <table class="a-table">
+        <thead>
+          <tr>
+            <th style="width:100px;">ID</th>
+            <th>商品名</th>
+            <th style="width:120px;">公開</th>
+            <th style="width:220px;">更新日時</th>
+            <th style="width:120px;" class="a-th--right">操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @products.each do |p| %>
+            <tr>
+              <td><%= p.id %></td>
+              <td>
+                <div style="font-weight:600;"><%= p.name %></div>
+                <div class="a-help" style="margin:4px 0 0;">category: <%= p.category %></div>
+              </td>
+              <td>
+                <span class="a-pill <%= p.published? ? "a-pill--on" : "a-pill--off" %>">
+                  <%= p.published? ? "公開" : "非公開" %>
+                </span>
+              </td>
+              <td><%= l(p.updated_at) %></td>
+              <td>
+                <%= link_to "詳細", admin_trash_product_path(p), class: "a-btn" %>
+              </td>
+            </tr>
+          <% end %>
+
+          <% if @products.blank? %>
+            <tr>
+              <td colspan="5" class="a-empty">ゴミ箱は空です。</td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="a-pagination">
+      <span>total: <%= @total %></span>
+      <span>page: <%= @page %> / <%= [@total_pages, 1].max %></span>
+
+      <span style="margin-left:auto;"></span>
+
+      <% if @page > 1 %>
+        <%= link_to "前へ", admin_trash_products_path(request.query_parameters.merge(page: @page - 1)), class: "a-btn" %>
+      <% else %>
+        <button class="a-btn" disabled>前へ</button>
+      <% end %>
+
+      <% if @page < @total_pages %>
+        <%= link_to "次へ", admin_trash_products_path(request.query_parameters.merge(page: @page + 1)), class: "a-btn" %>
+      <% else %>
+        <button class="a-btn" disabled>次へ</button>
+      <% end %>
+    </div>
+  </div>
+</div>

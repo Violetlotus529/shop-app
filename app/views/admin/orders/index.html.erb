@@ -1,101 +1,99 @@
-<h1>注文一覧</h1>
+<div class="a-page">
+  <div class="a-head">
+    <h1 class="a-title">注文一覧</h1>
+  </div>
 
-<%= form_with url: admin_orders_path, method: :get, local: true do %>
-  <div style="display:flex; 12px; flex-wrap:wrap; align-items:flex-end;">
-    <div>
-      <label>検索</label>
-      <input type="text" name="q" value="<%= @q %>" placeholder="注文ID / 顧客名 / メール">
-    </div>
+  <div class="a-card">
+    <%= form_with url: admin_orders_path, method: :get, local: true, class: "a-filters" do %>
 
-    <div>
-      <label>status</label><br>
-      <select name="status">
-        <option value="">全て</option>
-        <% Order.statuses.keys.each do |s| %>
-          <option value="<%= s %>" <%= "selected" if @status == s %>><%= s %></option>
-        <% end %>
-      </select>
-    </div>
+      <div class="a-field">
+        <label class="a-label">検索</label>
+        <input class="a-input" type="text" name="q" value="<%= @q %>" placeholder="注文ID / 顧客名 / メール">
+      </div>
 
-    <div>
-      <label>from</label><br>
-      <input type="date" name="from" value="<%= @from %>">
-    </div>
+      <div class="a-field">
+        <label class="a-label">ステータス</label>
+        <select class="a-select" name="status">
+          <option value="">全て</option>
+          <% Order.statuses.keys.each do |s| %>
+            <option value="<%= s %>" <%= "selected" if @status == s %>><%= s %></option>
+          <% end %>
+        </select>
+      </div>
 
-    <div>
-      <label>to</label><br>
-      <input type="date" name="to" value="<%= @to %>">
-    </div>
+      <div class="a-field">
+        <label class="a-label">from</label>
+        <input class="a-input" type="date" name="from" value="<%= @from %>">
+      </div>
 
-    <div>
-      <label>sort</label><br>
-      <select name="sort">
-        <option value="created_at_desc" <%= "selected" if @sort == "created_at_desc" %>>新しい順</option>
-        <option value="created_at_asc"  <%= "selected" if @sort == "created_at_asc"  %>>古い順</option>
-      </select>
-    </div>
-    <div>
-      <button type="submit">検索</button>
-      <%= link_to "クリア", admin_orders_path %>
+      <div class="a-field">
+        <label class="a-label">to</label>
+        <input class="a-input" type="date" name="to" value="<%= @to %>">
+      </div>
+
+      <div class="a-field">
+        <label class="a-label">並び替え</label>
+        <select class="a-select" name="sort">
+          <option value="created_at_desc" <%= "selected" if @sort == "created_at_desc" %>>新しい順</option>
+          <option value="created_at_asc"  <%= "selected" if @sort == "created_at_asc"  %>>古い順</option>
+        </select>
+      </div>
+
+      <div class="a-field a-field--btn">
+        <button class="a-btn a-btn--primary" type="submit">検索</button>
+      </div>
+
+    <% end %>
+  </div>
+
+  <div class="a-card a-card--table">
+    <div class="a-tableWrap">
+      <table class="a-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>日時</th>
+            <th>顧客</th>
+            <th>ステータス</th>
+            <th>合計</th>
+            <th></th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <% @rows.each do |r| %>
+            <tr>
+              <td>#<%= r[:id] %></td>
+              <td><%= l(r[:created_at]) %></td>
+              <td>
+                <div><%= r[:customer_name] %></div>
+                <div class="text-sm text-muted"><%= r[:customer_email] %></div>
+              </td>
+              <td>
+                <span class="a-badge a-badge--<%= r[:status] %>">
+                  <%= r[:status_label] %>
+                </span>
+              </td>
+              <td>¥<%= r[:total_cents] %></td>
+              <td>
+                <%= link_to "詳細", admin_order_path(r[:id]), class: "a-btn" %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
     </div>
   </div>
-<% end %>
 
-<hr>
+  <div class="a-pagination">
+    <span>Page <%= @page %> / <%= @total_pages %></span>
 
-<table border="1" cellpadding="6" cellspacing="0" style="width:100%;">
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>注文日時</th>
-      <th>購入者</th>
-      <th>ステータス</th>
-      <th>合計金額</th>
-      <th></th>
-    </tr>
-  </thead>
-
-  <tbody>
-    <% @rows.each do |r| %>
-      <tr>
-        <td><%= r[:id] %></td>
-        <td><%= l(r[:created_at]) %></td>
-        <td>
-          <%= r[:customer_name] %><br>
-          <small><%= r[:customer_email] %></small>
-        <td><%= r[:status] %></td>
-        <td><%= number_to_currency(r[:total_cents], unit: "¥", precision: 0) %></td>
-        <td>
-          <% if r[:image].present? %>
-            <%= image_tag r[:image], width: 157.12, height: 180, style: "object-fit:cover; display:block;" %>
-          <% end %>
-
-          <div>
-            <%= r[:product_name] %> (<%= r[:variant_label] %>)
-            <% if r[:other_count] > 0 %>
-              / 他 <%= r[:other_count] %> 点
-            <% end %>
-          </div>
-        </td>
-        <td><%= link_to "詳細", admin_order_path(r[:id]) %></td>
-      </tr>
-    <% end %>
-  </tbody>
-</table>
-
-<hr>
-
-<div style="display:flex; 12px; align-items:center;">
-  <div>total: <%= @total %></div>
-  <div>page: <%= @page %> / <%= [@total_pages, 1].max %></div>
-
-  <div style="margin-left:auto;">
     <% if @page > 1 %>
-      <%= link_to "前へ", admin_orders_path(request.query_parameters.merge(page: @page - 1)) %>
+      <%= link_to "Prev", admin_orders_path(request.query_parameters.merge(page: @page - 1)), class: "a-btn" %>
     <% end %>
 
     <% if @page < @total_pages %>
-      <%= link_to "次へ", admin_orders_path(request.query_parameters.merge(page: @page + 1)) %>
+      <%= link_to "Next", admin_orders_path(request.query_parameters.merge(page: @page + 1)), class: "a-btn" %>
     <% end %>
   </div>
 </div>
