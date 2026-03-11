@@ -2,14 +2,17 @@
 
 ## 1. Overview
 - A single-store e-commerce application built with Ruby on Rails.
-- 単一店舗のアパレルEC向け管理画面付きアプリケーション。
+- 単一店舗のアパレルECサイトを想定した ECアプリケーション + 管理画面 です。
+  商品管理・在庫管理・注文管理を中心とした バックオフィス業務を想定した設計になっています。
+
+  Guest checkout / Registered checkout の両方に対応しています。
 
 - Demo ----url
 - [Figma - VioletLotus Admin](https://www.figma.com/design/FyMtVPAcQc0eArPW6eT7cV/EC%E3%82%B5%E3%82%A4%E3%83%88?node-id=0-1&t=r2dhyuTUfpk2hdAk-1)
 
 Admin Demo Login
-Email: admin@example.com
-Password: password123
+Email: admin@test.com
+Password: password
 
 ## 2. Design
 
