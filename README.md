@@ -100,6 +100,7 @@
 pending → paid → processing → shipped → completed
 paid → canceled
 processing → canceled
+```
 
 制約:
 - shipped 以降は canceled 不可
