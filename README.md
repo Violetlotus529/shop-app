@@ -171,18 +171,17 @@ deleted -> active (復元可能)
 
 ### 4-2. Endpoint List
 
-| Group      | Method | Path                             | Summary                     |
-|-----------|--------|----------------------------------|-----------------------------|
-
-| Products  | GET    | /admin/products                 | 商品一覧                     |
+| Group      | Method | Path                             | Summary               |
+|-----------|--------|----------------------------------|------------------------|
+| Products  | GET    | /admin/products                 | 商品一覧                 |
 | Products  | GET    | /admin/products/:id             | 商品詳細（編集/プレビュー） |
-| Products  | POST   | /admin/products                 | 商品作成                     |
-| Products  | PUT    | /admin/products/:id             | 商品更新                     |
+| Products  | POST   | /admin/products                 | 商品作成                 |
+| Products  | PUT    | /admin/products/:id             | 商品更新                 |
 | Products  | PATCH  | /admin/products/:id/deleted     | 削除・復元トグル            |
 | Trash     | GET    | /admin/trash/products           | 削除済み商品一覧             |
 | Trash     | GET    | /admin/trash/products/:id       | 削除済み商品詳細             |
-| Orders    | GET    | /admin/orders                   | 注文一覧                     |
-| Orders    | GET    | /admin/orders/:id               | 注文詳細                     |
+| Orders    | GET    | /admin/orders                   | 注文一覧                    |
+| Orders    | GET    | /admin/orders/:id               | 注文詳細                    |
 | Orders    | PATCH  | /admin/orders/:id/status        | 注文ステータス更新          |
 | Inventory | GET    | /admin/inventories              | 在庫一覧（SKU単位）          |
 | Inventory | PUT    | /admin/api/inventories          | 在庫一括更新                 |
