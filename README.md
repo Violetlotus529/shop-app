@@ -815,10 +815,4 @@ erDiagram
   CUSTOMERS ||--o{ ORDERS : places
   ORDERS ||--o{ ORDER_ITEMS : includes
   PRODUCT_VARIANTS ||--o{ ORDER_ITEMS : ordered_as
-
-```md
-- ゲストカートはDBではなく session で管理しています。
-- そのため ER 図には guest cart 用テーブルを含めていません。
 ```
-
-    
