@@ -106,7 +106,7 @@ processing → canceled
 - shipped 以降は canceled 不可
 - ステータス更新は「管理画面の注文詳細」でのみ可能
 - canceled は paid / processing でのみ可能
-- 不正なステータス遷移は API 側で拒否する
+- 不正なステータス遷移は サーバー側で拒否する
 
 ### 3-2. Order Status & Transitions
 利用ステータス:
@@ -131,7 +131,7 @@ processing → canceled
 禁止される遷移:
 - shipped / completed から canceled への変更
 - completed から processing / shipped への巻き戻し
-- paiding から canceled へ遷移
+- pending から canceled へ遷移
 - 定義されていない status への更新
 
 ### 3-3. Inventory Constraints
@@ -173,10 +173,7 @@ deleted -> active (復元可能)
 
 | Group      | Method | Path                             | Summary                     |
 |-----------|--------|----------------------------------|-----------------------------|
-| Auth      | POST   | /admin/login                    | 管理者ログイン              |
-| Auth      | POST   | /admin/logout                   | ログアウト                  |
-| Auth      | POST   | /admin/password/forgot          | パスワード再設定メール送信  |
-| Auth      | POST   | /admin/password/reset           | パスワード再設定            |
+
 | Products  | GET    | /admin/products                 | 商品一覧                     |
 | Products  | GET    | /admin/products/:id             | 商品詳細（編集/プレビュー） |
 | Products  | POST   | /admin/products                 | 商品作成                     |
@@ -191,119 +188,7 @@ deleted -> active (復元可能)
 | Inventory | PUT    | /admin/api/inventories          | 在庫一括更新                 |
 
 ## 5. API Details
-### 5-1. Auth APIs
-#### POST /admin/login
-概要:
-- 管理者のログインを行う。
-
-認可:
-- 認証不要
-
-### Headers:
-Content-Type: application/json
-
-### Request Body (JSON):
-```json
-{
-  "email": "admin@example.com",   // 管理者メールアドレス
-  "password": "password123"       // パスワード
-}
-```
-### Response 200:
-```json
-{
-  "id": "admin-uuid",
-  "email": "admin@example.com",
-  "token": "jwt-or-session-token"
-}
-```
-### Status Codes:
-- 200 OK: ログイン成功
-- 401 Unauthorized: 認証失敗(メール or パスワード不正)
-
-#### POST /admin/logout
-概要:
-- 管理者のログアウトを行う。
-
-認可:
-- 管理者ログイン済みセッションが必要
-
-### Headers:
-Content-Type: application/json
-
-### Response 200:
-```json
-{
-  "message": "ログアウトしました。"
-}
-```
-### Status Codes:
-- 200 OK: 成功
-- 401 Unauthorized: トークンが無効・期限切れ
-
-#### POST /admin/password/forgot
-概要:
-- パスワード再設定メールを送信する。
-
-認可:
-- 認証不要
-
-### Headers:
-Content-Type: application/json
-
-### Request Body（JSON）:
-```json
-{
-  "email": "admin@example.com"  // 管理者メールアドレス
-}
-```
-### Response 200:
-```json
-{
-  "message": "パスワード再設定メールを送信しました。"
-}
-```
-### Status Codes:
-- 200 OK: 成功
-- 404 NOT FOUND: メールアドレスが存在しない
-
-#### POST /admin/password/reset
-概要:
-- パスワード再設定を行う。
-
-認可:
-- 認証不要(reset_token の検証で代替)
-
-### Headers:
-Content-Type: application/json
-
-### Request Body(JSON):
-```json
-{
-  "token": "abcdef123456"  //resetメールに含めたトークン
-  "password": "newPassword123"  //新しいパスワード
-}
-```
-### Response 200:
-```json
-{
-  "message": "パスワードを更新しました。"
-}
-```
-### Status Codes:
-- 200 OK: 成功
-- 400 Bad Request: 入力値が不足または不正
-- 404 Not Found: リソースが存在しない
-- 422 Unprocessable Entity: バリデーション違反
-
-### 失敗レスポンス例(404 Not Found):
-```json
-{
-  "error": "INVALID_TOKEN",
-  "message": "パスワード再設定リンクが無効または期限切れです。"
-}
-```
-### 5-2. Product APIs
+### 5-1. Product APIs
 #### GET /admin/products
 概要:
 - 商品一覧を取得する(検索・フィルタ・並び替え・含む)
@@ -344,7 +229,7 @@ Content-Type: application/json
 ### Status Codes:
 - 200 OK: 成功
 - 400 : 不正なクエリパラメータ
-- 401 Unauthorized: 認証トークンが無効 or 未提供
+- 401 Unauthorized: 管理者として未ログイン、または認証無効
 
 #### GET /admin/products/:id
 概要:
@@ -375,7 +260,7 @@ Content-Type: application/json
 ```
 ### Status Codes:
 - 200 OK: 成功
-- 401 Unauthorized: 無効なトークン・未提供
+- 401 Unauthorized: 管理者として未ログイン、または認証無効
 - 404 Not Found: 指定されたIDの商品が存在しない
 
 #### POST /admin/products
@@ -408,7 +293,7 @@ Content-Type: application/json
 ### Status Codes:
 - 201 Created: 作成成功
 - 400 Bad Request: 必須項目不足・形式不正
-- 401 Unauthorized: 認証トークンが無効 or 未提供
+- 401 Unauthorized: 管理者として未ログイン、または認証無効
 - 422 Unprocessable Entity: バリデーションエラー
 
 
@@ -463,7 +348,7 @@ Content-Type: application/json
 ### Status Codes:
 - 200 OK: 正常に更新された
 - 400 Bad Request: JSON形成不正・必須項目不足
-- 401 Unauthorized: 認証トークンが無効・未提供
+- 401 Unauthorized: 管理者として未ログイン、または認証無効
 - 404 Not Found: 指定されたIDの商品が存在しない
 - 422 Unprocessable Entity: バリデーションエラー（価格が負数など）
 
@@ -499,7 +384,7 @@ Content-Type: application/json
 ### Status Codes:
 - 200 OK: 正常に更新された
 - 400 Bad Request: JSON形式不正・必須項目不足
-- 401 Unauthorized: 認証トークンが無効 or 未提供
+- 401 Unauthorized: 管理者として未ログイン、または認証無効
 - 404 Not Found: 指定されたIDの商品が存在しない
 
 #### GET /admin/trash/products
@@ -535,7 +420,7 @@ Content-Type: application/json
 ```
 ### Status Codes:
 - 200 OK: 成功
-- 401 Unauthorized: トークンが無効・未提供
+- 401 Unauthorized: 管理者として未ログイン、または認証無効
 - 404 Not Found: ページ範囲外もしくは該当商品が存在しない
 
 #### GET /admin/trash/products/:id
@@ -570,10 +455,10 @@ Content-Type: application/json
 ```
 ### Status Codes:
 - 200 OK: 成功
-- 401 Unauthorized: トークンが無効・未提供
+- 401 Unauthorized: 管理者として未ログイン、または認証無効
 - 404 Not Found: 対象IDが存在しない、または削除されていない
 
-### 5-3. Order APIs
+### 5-2. Order APIs
 #### GET /admin/orders
 概要:
 - 注文一覧を取得する（検索、フィルター、並び替えを含む）。
@@ -585,7 +470,7 @@ Content-Type: application/json
  パラメータ     | 型 | 必須    | 説明                                |
  ------------|----|---------|------------------------------------|
  q           | string | 任意　 　| 注文番号、顧客名、メールアドレスでの一部一致検索 |
- status      | string | 任意    | pending / paid / processing / shipped / completed / canceled |
+ status      | string | 任意    | pending / paid / processing / shipped / completed / canceled / failed / refunded |
  from        | string | 任意    | 開始日（YYYY-MM-DD）                 |
  to          | string | 任意    | 終了日（YYYY-MM-DD）                 |
  sort        | string | 任意    | created_at_desc　/ created_at_asc（注文日時の降順/昇順）　|
@@ -616,7 +501,7 @@ Content-Type: application/json
 ```
 ### Status Codes:
 - 200 OK: 成功
-- 401 Unauthorized: トークンが無効 or 未提供
+- 401 Unauthorized: 管理者として未ログイン、または認証無効
 
 #### GET /admin/orders/:id
 概要:
@@ -672,7 +557,7 @@ Content-Type: application/json
 ```
 ### Status Codes:
 - 200 OK: 成功
-- 401 Unauthorized: トークンが無効・未提供
+- 401 Unauthorized: 管理者として未ログイン、または認証無効
 - 404 Not Found: 指定されたIDの注文が存在しない
 
 #### PATCH /admin/orders/:id/status
@@ -702,13 +587,13 @@ Content-Type: application/json
 ### Status Codes:
 - 200 OK: 正常に更新された
 - 400 Bad Request: statusが欠落・定義外の値
-- 401 Unauthorized: トークンが無効・未提供
+- 401 Unauthorized: 管理者として未ログイン、または認証無効
 - 404 Not Found: 注文が存在しない
 - 422 Unprocessable Entity:
  - Order Status & Transitions に反する遷移を要求した場合
  - 例: shipped/completed の注文に "canceled"を指定した場合
 
-### 5-4. Inventory APIs
+### 5-3. Inventory APIs
 #### GET /admin/inventories
 概要:
 - バリアント（SKU）単位の在庫一覧を取得する（検索・フィルター・並び替えを含む）。
@@ -721,7 +606,7 @@ Content-Type: application/json
  ------------|--------|------|--------------------------------------------------|
  q           | string | 任意 | 商品名 / カラー / サイズ / SKU の部分一致検索          |
  stock_state | string | 任意 | all / in_stock / low / out_of_stock              |
- sort        | string | 任意 | stock_desc / stock_asc(在庫数の降順/昇順)           |
+ sort        | string | 任意 | updated_at_desc / stock_desc / stock_asc(在庫数の降順/昇順) |
  page        | number | 任意 | ページ番号（１以上の整数）                            |
 
 ### Response 200:
@@ -745,9 +630,9 @@ Content-Type: application/json
 ```
 ### Status Codes:
 - 200 OK: 成功
-- 401 Unauthorized: トークンが無効・未提供
+- 401 Unauthorized: 管理者として未ログイン、または認証無効
 
-#### PUT /admin/inventories
+#### PUT /admin/api/inventories
 概要:
 - 編集モード ON 中に変更された全ての在庫を一括更新する。
 
@@ -760,7 +645,7 @@ Content-Type: application/json
 ### Request Body (JSON):
 ```json
 {
-  "updates": [
+  "variants": [
     {
       "id": "variant-uuid-1",
       "stock": 15
@@ -782,10 +667,10 @@ Content-Type: application/json
 ### Status Codes:
 - 200 OK: 正常に更新された
 - 400 Bad Request: JSON形式が不正
-- 401 Unauthorized: トークン無効・未提供
+- 401 Unauthorized: 管理者として未ログイン、または認証無効
 - 422 Unprocessable Entity: 在庫数が負数などのバリデーション違反
 
-### 5-5. Error Codes:
+### 5-4. Error Codes:
 - BAD_REQUEST            / JSONフォーマット不正、クエリ不正
 - UNAUTHORIZED           / 管理者として未ログイン、または認証無効
 - INVALID_CREDENTIALS    / ログイン失敗
@@ -820,38 +705,38 @@ rails db:create
 rails db:migrate
 bin/dev
 ```
+## 7. ER Diagram
+
 ```mermaid
 erDiagram
-  USERS {
-    uuid id PK
+  ADMIN_USERS {
+    bigint id PK
     string email
-    string password_digest
-    string full_name
-    string phone
-    boolean is_admin
+    string encrypted_password
     datetime created_at
     datetime updated_at
   }
 
-  ADDRESSES {
-    uuid id PK
-    uuid user_id FK
+  CUSTOMERS {
+    bigint id PK
+    string name
+    string email
+    string encrypted_password
     string postal_code
     string prefecture
     string city
     string address_line1
     string address_line2
-    string phone
-    boolean is_default
     datetime created_at
     datetime updated_at
   }
 
   PRODUCTS {
-    uuid id PK
+    bigint id PK
     string name
     text description
     integer price_cents
+    string category
     boolean published
     boolean deleted
     datetime created_at
@@ -859,8 +744,8 @@ erDiagram
   }
 
   PRODUCT_VARIANTS {
-    uuid id PK
-    uuid product_id FK
+    bigint id PK
+    bigint product_id FK
     string sku
     string color
     string size
@@ -870,73 +755,70 @@ erDiagram
     datetime updated_at
   }
 
-  CARTS {
-    uuid id PK
-    uuid user_id FK
-    string guest_token
-    datetime created_at
-    datetime updated_at
-  }
-
   CART_ITEMS {
-    uuid id PK
-    uuid cart_id FK
-    uuid product_variant_id FK
+    bigint id PK
+    bigint customer_id FK
+    bigint product_variant_id FK
     integer quantity
     datetime created_at
     datetime updated_at
   }
 
   ORDERS {
-    uuid id PK
-    uuid user_id FK
-    uuid address_id FK
-    string email
-    string full_name
-    integer shipping_fee_cents
+    bigint id PK
+    bigint customer_id FK
+    integer status
     integer total_cents
-    string status
+    string customer_name
+    string customer_email
+    string postal_code
+    string prefecture
+    string city
+    string address_line1
+    string address_line2
+    string guest_order_number
+    string stripe_checkout_session_id
+    string stripe_payment_intent_id
+    string stripe_refund_id
     datetime paid_at
-    datetime shipped_at
-    datetime completed_at
-    datetime canceled_at
+    datetime refunded_at
     datetime created_at
     datetime updated_at
   }
 
   ORDER_ITEMS {
-    uuid id PK
-    uuid order_id FK
-    uuid product_variant_id FK
-    integer unit_price_cents
+    bigint id PK
+    bigint order_id FK
+    bigint product_variant_id FK
     integer quantity
+    integer unit_price_cents
     integer subtotal_cents
     datetime created_at
     datetime updated_at
   }
 
-  PAYMENTS {
-    uuid id PK
-    uuid order_id FK
-    string provider
-    string stripe_checkout_session_id
-    string stripe_payment_intent_id
-    integer amount_cents
-    string status
-    datetime paid_at
+  STRIPE_EVENTS {
+    bigint id PK
+    string event_id
+    string event_type
+    datetime processed_at
+    integer retry_count
+    text last_error
+    datetime last_attempted_at
     datetime created_at
     datetime updated_at
   }
 
-  USERS ||--o{ ADDRESSES : has
-  USERS ||--o{ CARTS : has
-  CARTS ||--o{ CART_ITEMS : contains
   PRODUCTS ||--o{ PRODUCT_VARIANTS : has
-  PRODUCT_VARIANTS ||--o{ CART_ITEMS : in
-  USERS ||--o{ ORDERS : places
-  ADDRESSES ||--o{ ORDERS : used_for
+  PRODUCT_VARIANTS ||--o{ CART_ITEMS : used_in
+  CUSTOMERS ||--o{ CART_ITEMS : has
+  CUSTOMERS ||--o{ ORDERS : places
   ORDERS ||--o{ ORDER_ITEMS : includes
-  PRODUCT_VARIANTS ||--o{ ORDER_ITEMS : sold_as
-  ORDERS ||--o{ PAYMENTS : paid_by
+  PRODUCT_VARIANTS ||--o{ ORDER_ITEMS : ordered_as
+
+```md
+- ゲストカートはDBではなく session で管理しています。
+- そのため ER 図には guest cart 用テーブルを含めていません。
+```
 
     
