@@ -1,88 +1,110 @@
 # VioletLotus EC Admin
 
 ## 1. Overview
+
 - A single-store e-commerce application built with Ruby on Rails.
-- 単一店舗のアパレルECサイトを想定した ECアプリケーション + 管理画面 です。
-  商品管理・在庫管理・注文管理を中心とした バックオフィス業務を想定した設計になっています。
+- 単一店舗のアパレルECサイトを想定した、**ECアプリケーション + 管理画面**です。
+- 商品管理・在庫管理・注文管理を中心に、**バックオフィス業務を想定した設計**になっています。
+- Guest checkout / Registered checkout の両方に対応しています。
 
-  Guest checkout / Registered checkout の両方に対応しています。
-
-- Demo ----url
+- Demo: ----url
 - [Figma - VioletLotus Admin](https://www.figma.com/design/FyMtVPAcQc0eArPW6eT7cV/EC%E3%82%B5%E3%82%A4%E3%83%88?node-id=0-1&t=r2dhyuTUfpk2hdAk-1)
 
-Admin Demo Login
-Email: admin@test.com
-Password: password
+### Admin Demo Login
+
+- Email: admin@test.com
+- Password: password
+
+---
 
 ## 2. Design
 
 ### 2-1. Target Users
-- Admin: store owner / inventory staff (single role)
-- Customer: guest checkout or registered user
+
+- **Admin**: store owner / inventory staff
+- **Customer**: guest checkout or registered user
 
 ### 2-2. Checkout & Payment
+
 - Cart-based checkout
 - Payment: Stripe Checkout
-- Currency: JPY, tax-inclusive pricing
+- Currency: JPY (tax-inclusive pricing)
 - Shipping fee: fixed amount
 
 ### 2-3. Guest vs Registered Checkout
+
 - Guest checkout: allowed, but address is required at checkout
 - Registered user: address is collected at sign-up and reused at checkout
 
 ### 2-4. Product Variants
+
 - Variant dimensions: color / size
 - Stock is managed per variant (SKU-level)
 
 ### 2-5. 管理画面の設計方針
-目的・想定
-- 単一店舗で運用するアパレルECサイトを想定する。管理画面の利用者は店主・在庫管理スタッフで、商品管理 / 在庫管理 / 注文管理を行う。
-- ユーザー画面の利用者は顧客で、商品の閲覧・購入を行う（ゲスト購入も可）。
-- フレーム幅 1440px を前提に設計する。判断・条件分岐・画面遷移が多い 管理画面を優先して設計した。
 
-画面と責務の分離（一覧 / 詳細 / 編集）
-- 一覧：探索・把握・絞り込み・並び替え・対象選択・詳細への遷移を担う。
-- 詳細/編集：更新・削除（論理削除）・復元などの 破壊的操作を集約する。
-- 誤操作防止のため、一覧からは原則として破壊的操作を行わず、操作可能箇所を限定する。
+#### 目的・想定
 
-在庫管理
-- カラー・サイズを区別するため、在庫は バリアント（SKU）単位で管理する。
-- 操作工数削減のため、編集ページは作らず 一覧内の「編集モード」ON/OFFで在庫数を更新する。
-- 画面遷移やヘッダー操作時に未保存の変更がある場合は検知し、保存確認モーダルを表示する。
-- 優先順位：保存確認モーダル > フィルターモーダル
-- 自動保存はUX向上の側面もあるが、在庫・注文といった業務上の重要度が高い操作においては誤更新のリスクを避けるため、明示的な保存操作を優先した。
-- 一覧での探索補助として、検索・フィルター・並び替えを実装する。
+- 単一店舗で運用するアパレルECサイトを想定する。
+- 管理画面の利用者は店主・在庫管理スタッフで、商品管理 / 在庫管理 / 注文管理を行う。
+- ユーザー画面の利用者は顧客で、商品の閲覧・購入を行う（ゲスト購入可）。
+- フレーム幅 1440px を前提に設計する。
+- 判断・条件分岐・画面遷移が多い管理画面を優先して設計した。
 
-注文管理
-- 注文一覧は 未処理 / 処理済み をスイッチで切り替えて表示する（どちらか一方のみ表示）。
-- 誤操作防止のため、ステータス更新は 注文詳細のみで行う。
-- 「処理中 / 発送済み / 配送完了 / キャンセル・返金」の遷移条件を定義し、不可逆の遷移ルールを保証する。
-- 発送済み以降はキャンセル不可のため、発送済みに更新する際は警告（フラッシュ表示）を出す。
+#### 画面と責務の分離（一覧 / 詳細 / 編集）
 
-商品管理
-- 誤操作防止のため、削除（論理削除）は 商品編集画面のみで可能とする。
-- 在庫・注文履歴への影響防止のため、物理削除ではなく 論理削除（soft delete）+ 復元を採用する。
-- ゴミ箱画面での探索補助として、検索・並び替えを実装する。
-- 完全削除は行わない（管理UIとして提供しない）。
+- 一覧: 探索・把握・絞り込み・並び替え・対象選択・詳細への遷移を担う
+- 詳細 / 編集: 更新・削除（論理削除）・復元などの破壊的操作を集約する
+- 誤操作防止のため、一覧からは原則として破壊的操作を行わず、操作可能箇所を限定する
 
-決済・在庫反映
-- 外部決済として Stripe Checkout を採用する。
-- 支払い確定は Webhook で受け取り、支払い確定後に在庫を減算する。
-- 在庫が 0 の場合、ユーザー側のバリアント選択UIで SOLD OUT を自動表示する。
+#### 在庫管理
 
-ドキュメント方針
-- README：全体方針（設計思想 / 主要ルール / 仕様の要点）
-- docs/：詳細（API設計 / 画面仕様 / 状態遷移)
+- カラー・サイズを区別するため、在庫はバリアント（SKU）単位で管理する
+- 操作工数削減のため、編集ページは作らず、一覧内の「編集モード」ON / OFF で在庫数を更新する
+- 画面遷移やヘッダー操作時に未保存の変更がある場合は検知し、保存確認を行う
+- 自動保存は行わず、明示的な保存操作を優先する
+- 一覧での探索補助として、検索・フィルター・並び替えを実装する
+
+#### 注文管理
+
+- 注文一覧では検索・ステータス絞り込み・日付絞り込み・並び替えを行える
+- 誤操作防止のため、ステータス更新は注文詳細のみで行う
+- ステータス遷移条件を定義し、不可逆の遷移ルールを保証する
+- shipped 以降はキャンセル不可とする
+
+#### 商品管理
+
+- 誤操作防止のため、削除（論理削除）は商品編集画面のみで可能とする
+- 在庫・注文履歴への影響防止のため、物理削除ではなく論理削除（soft delete）+ 復元を採用する
+- ゴミ箱画面での探索補助として、検索・並び替えを実装する
+- 完全削除は行わない（管理UIとして提供しない）
+
+#### 決済・在庫反映
+
+- 外部決済として Stripe Checkout を採用する
+- 支払い確定は Webhook で受け取り、支払い確定後に在庫を減算する
+- 在庫が 0 の場合、ユーザー側のバリアント選択UIで SOLD OUT を表示する
+
+#### ドキュメント方針
+
+- `README`: 全体方針（設計思想 / 主要ルール / 仕様の要点）
+- `docs/`: 詳細（API設計 / 画面仕様 / 状態遷移）
+
+---
 
 ## 3. Domain Rules
+
 ### 3-1. Order Status State Machine
+
+```text
 pending → paid → processing → shipped → completed
+paid → canceled
 processing → canceled
 
 制約:
 - shipped 以降は canceled 不可
 - ステータス更新は「管理画面の注文詳細」でのみ可能
-- canceled は pending / paid / processing でのみ可能
+- canceled は paid / processing でのみ可能
 - 不正なステータス遷移は API 側で拒否する
 
 ### 3-2. Order Status & Transitions
@@ -93,18 +115,23 @@ processing → canceled
 - shipped
 - completed
 - canceled
+- failed
+- refunded
 
 遷移フロー:
-- pending → paid        （Stripe 決済）
-- paid → processing     （バックエンドで自動）
+- pending → paid        （Stripe 決済完了）
+- pending → failed
+- paid → processing     （管理画面）
+- paid → canceled        (管理画面)
 - processing → shipped  （管理画面）
-- shipped → completed   （管理画面）
 - processing → canceled （管理画面）
+- shipped → completed   （管理画面）
 
 禁止される遷移:
 - shipped / completed から canceled への変更
 - completed から processing / shipped への巻き戻し
-- pending / paid / processing 以外から canceled へ遷移
+- paiding から canceled へ遷移
+- 定義されていない status への更新
 
 ### 3-3. Inventory Constraints
 - stock >= 0 (負の値不可)
@@ -119,12 +146,13 @@ deleted -> active (復元可能)
 制約:
 - 論理削除のため物理削除は行わない
 - deleted 状態の商品は一覧の "ゴミ箱" に表示
-- 編集操作は active のみ許可
+- deleted 状態の商品は購入画面に表示しない
 
 ## 4. API Overview
 ### 4-1. API Common Rules
 - ALL timestamps are **ISO8601** format.
-- `Authorization: Bearer <token>` is required for all admin APIs except login/reset.
+- 管理画面はDeviseのセッション認証を使用しています。
+- 管理者向けAPIおよび管理画面は管理者ログイン済みセッションを前提としています。
 - Error response structure:
 ```json
 {
@@ -135,7 +163,7 @@ deleted -> active (復元可能)
 - Pagination format:
 ```json
 {
-  "current": 1,
+  "current_page": 1,
   "total_pages": 3
 }
 ```
@@ -159,7 +187,7 @@ deleted -> active (復元可能)
 | Orders    | GET    | /admin/orders/:id               | 注文詳細                     |
 | Orders    | PATCH  | /admin/orders/:id/status        | 注文ステータス更新          |
 | Inventory | GET    | /admin/inventories              | 在庫一覧（SKU単位）          |
-| Inventory | PUT    | /admin/inventories              | 在庫一括更新                 |
+| Inventory | PUT    | /admin/api/inventories          | 在庫一括更新                 |
 
 ## 5. API Details
 ### 5-1. Auth APIs
@@ -197,11 +225,10 @@ Content-Type: application/json
 - 管理者のログアウトを行う。
 
 認可:
-- 管理者認証が必要(Authorizationヘッダーでトークンを送る)
+- 管理者ログイン済みセッションが必要
 
 ### Headers:
 Content-Type: application/json
-Authorization: Bearer <token>
 
 ### Response 200:
 ```json
@@ -281,11 +308,10 @@ Content-Type: application/json
 - 商品一覧を取得する(検索・フィルタ・並び替え・含む)
 
 認可:
-- 管理者認証が必要。
+- 管理者ログイン済みセッションが必要
 
 ### Headers: 
 Content-Type: application/json
-Authorization: Bearer <token>
 
 ### Query Parameters:
  パラメータ  | 型     | 必須 | 説明 |
@@ -324,10 +350,7 @@ Authorization: Bearer <token>
 - 商品の詳細を取得する（編集画面・プレビュー用）。
 
 認可:
-- 管理者認証が必要。
-
-### Headers:
-- Authorization: Bearer <token>
+- 管理者ログイン済みセッションが必要
 
 ### Path Parameters:
  パラメータ | 型     | 必須 | 説明         |
@@ -345,7 +368,7 @@ Authorization: Bearer <token>
   "image_url":  "/image/xxx.jpg",
   "published": true,
   "variants": [
-    { "id": "variant-uuid-1", "color": "BLACK", "size": "M", "sku": "TSHIRT-BLK-M" }
+    { "id": "variant-uuid-1", "color": "BLACK", "size": "M", "sku": "TSHIRT-BLK-M", "deleted": false }
   ]
 }
 ```
@@ -359,11 +382,10 @@ Authorization: Bearer <token>
 - 商品を新規作成する。
 
 認可:
-- 管理者認証が必要。
+- 管理者ログイン済みセッションが必要
 
 ### Headers:
 Content-Type: application/json
-Authorization: Bearer <token>
 
 ### Request Body(JSON):
 ```json
@@ -394,11 +416,10 @@ Authorization: Bearer <token>
 - 商品本体・基本情報・バリアントをまとめて編集する。
 
 認可:
-- 管理者認証が必要。
+- 管理者ログイン済みセッションが必要
 
 ### Headers:
 Content-Type: application/json
-Authorization: Bearer <token>
 
 ### Path Parameters:
  パラメータ  | 型    | 必須   | 説明          |
@@ -451,11 +472,10 @@ Authorization: Bearer <token>
 - どの画面から呼んでも「deleted を true/false にするだけ」。
 
 認可:
-- 管理者認証が必要
+- 管理者ログイン済みセッションが必要
 
 ### Headers:
 - Content-Type: application/json
-- Authorization: Bearer <token>
 
 ### Path Parameters:
  パラメータ  | 型     | 必須  | 説明         |
@@ -486,10 +506,7 @@ Authorization: Bearer <token>
 - `deleted = true` の商品だけを一覧取得する（検索・並び替えを含む）。
 
 認可:
-- 管理者認証が必要。
-
-### Headers:
-Authorization: Bearer <token>
+- 管理者ログイン済みセッションが必要
 
 ### Query Parameters:
  パラメータ | 型     | 必須 | 説明                              |
@@ -526,10 +543,7 @@ Authorization: Bearer <token>
 - `deleted = false`（すでに削除済み）の場合も 404 を返す。
 
 認可:
-- 管理者認証が必要
-
-### Headers:
-- Authorization: Bearer <token>
+- 管理者ログイン済みセッションが必要
 
 ### Path Parameters:
  パラメータ  | 型     | 必須 | 説明         |
@@ -564,10 +578,7 @@ Authorization: Bearer <token>
 - 注文一覧を取得する（検索、フィルター、並び替えを含む）。
 
 認可:
-- 管理者認証が必要。
-
-### Headers:
-- Authorization: Bearer <token>
+- 管理者ログイン済みセッションが必要
 
 ### Query Parameters:
  パラメータ     | 型 | 必須    | 説明                                |
@@ -611,10 +622,7 @@ Authorization: Bearer <token>
 - 注文の詳細を取得する（注文情報＋注文に含まれる商品一覧）。
 
 認可:
-- 管理者認証が必要。
-
-### Headers:
-- Authorization: Bearer <token>
+- 管理者ログイン済みセッションが必要
 
 ### Path Parameters:
  パラメータ  | 型     | 必須 |  説明         |
@@ -669,14 +677,13 @@ Authorization: Bearer <token>
 #### PATCH /admin/orders/:id/status
 概要:
 - 注文ステータスを更新する。
-- Order Status & Transitions に定義されたルールに従い、不正な遷移は拒否する。
+- 定義された遷移ルールに従い、不正な遷移は拒否する。
 
 認可:
-- 管理者認証が必要。
+- 管理者ログイン済みセッションが必要
 
 ### Headers:
 - Content-Type: application/json
-- Authorization: Bearer <token>
 
 ### Request Body (Json):
 ```json
@@ -706,15 +713,12 @@ Authorization: Bearer <token>
 - バリアント（SKU）単位の在庫一覧を取得する（検索・フィルター・並び替えを含む）。
 
 認可:
-- 管理者認証が必要。
-
-### Headers:
-- Authorization: Bearer <token>
+- 管理者ログイン済みセッションが必要
 
 ### Query Parameters:
  パラメータ     | 型     | 必須  | 説明                                             |
  ------------|--------|------|--------------------------------------------------|
- q           | string | 任意 | 商品名 / カラー / サイズの部分一致検索                 |
+ q           | string | 任意 | 商品名 / カラー / サイズ / SKU の部分一致検索          |
  stock_state | string | 任意 | all / in_stock / low / out_of_stock              |
  sort        | string | 任意 | stock_desc / stock_asc(在庫数の降順/昇順)           |
  page        | number | 任意 | ページ番号（１以上の整数）                            |
@@ -747,11 +751,10 @@ Authorization: Bearer <token>
 - 編集モード ON 中に変更された全ての在庫を一括更新する。
 
 認可:
-- 管理者認証が必要
+- 管理者ログイン済みセッションが必要
 
 ### Headers:
 - Content-Type: application/json
-- Authorization: Bearer <token>
 
 ### Request Body (JSON):
 ```json
@@ -783,7 +786,7 @@ Authorization: Bearer <token>
 
 ### 5-5. Error Codes:
 - BAD_REQUEST            / JSONフォーマット不正、クエリ不正
-- UNAUTHORIZED           / トークンが無効 or 未提供
+- UNAUTHORIZED           / 管理者として未ログイン、または認証無効
 - INVALID_CREDENTIALS    / ログイン失敗
 - INVALID_TOKEN          / パスワードリセットなどの token 不正
 - NOT_FOUND              / リソースが存在しない
@@ -795,13 +798,15 @@ Authorization: Bearer <token>
 - Ruby 3.2.2
 - Ruby on Rails 7.1
 - PostgreSQL
+- Stripe Checkout/Webhook
 - CSS / JavaScript
 - Render (deployment)
 
 ### 6-2. Local Setup
 ```bash
 bundle install
-rails db:create db:migrate
+rails db:create
+rails db:migrate
 rails s
 ```
 
@@ -810,8 +815,8 @@ rails s
 git clone <your-repo-url>
 cd shop-app
 bundle install
-yarn install
-rails db:create db:migrate
+rails db:create
+rails db:migrate
 bin/dev
 ```
 ```mermaid
