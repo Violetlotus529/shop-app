@@ -3,10 +3,9 @@
 ## 1. Overview
 
 - A single-store e-commerce application built with Ruby on Rails.
-- 単一店舗のアパレルECサイトを想定した、**ECアプリケーション + 管理画面**です。
-- 商品管理・在庫管理・注文管理を中心に、**バックオフィス業務を想定した設計**になっています。
-- Guest checkout / Registered checkout の両方に対応しています。
-
+- This project is an **EC application with an admin panel**, designed for a single apparel store.
+- The system focuses on back-office operations, including product management, inventory management, and order management.
+- Both guest checkout and registered user checkout are supported.
 - Demo: ----url
 - [Figma - VioletLotus Admin](https://www.figma.com/design/FyMtVPAcQc0eArPW6eT7cV/EC%E3%82%B5%E3%82%A4%E3%83%88?node-id=0-1&t=r2dhyuTUfpk2hdAk-1)
 
@@ -41,54 +40,56 @@
 - Variant dimensions: color / size
 - Stock is managed per variant (SKU-level)
 
-### 2-5. 管理画面の設計方針
+### 2-5. Admin Panel Design Principles
 
-#### 目的・想定
+#### Purpose and Assumptions
 
-- 単一店舗で運用するアパレルECサイトを想定する。
-- 管理画面の利用者は店主・在庫管理スタッフで、商品管理 / 在庫管理 / 注文管理を行う。
-- ユーザー画面の利用者は顧客で、商品の閲覧・購入を行う（ゲスト購入可）。
-- フレーム幅 1440px を前提に設計する。
-- 判断・条件分岐・画面遷移が多い管理画面を優先して設計した。
+- The system assumes an apparel EC site operated by a single store.
+- The admin panel is used by store owners and inventory staff to manage products, inventory, and orders.
+- The user-facing side allows customers to browse and purchase products (guest checkout supported).
+- The layout is designed with a 1440px desktop frame width.
+- Since the admin interface contains more decision points, conditions, and navigation complexity, the admin UI is prioritized in the design.
 
-#### 画面と責務の分離（一覧 / 詳細 / 編集）
+#### Separation of Responsibilities (List / Detail / Edit)
 
-- 一覧: 探索・把握・絞り込み・並び替え・対象選択・詳細への遷移を担う
-- 詳細 / 編集: 更新・削除（論理削除）・復元などの破壊的操作を集約する
-- 誤操作防止のため、一覧からは原則として破壊的操作を行わず、操作可能箇所を限定する
+- List pages handle exploration, overview, filtering, sorting, selecting items, and navigating to detail pages.
+- Detail/Edit pages handle updates, deletions (soft delete), restoration, and other destructive operations.
+- To prevent accidental operations, destructive actions are generally not available directly from list views.
 
-#### 在庫管理
+#### Inventory Management
 
-- カラー・サイズを区別するため、在庫はバリアント（SKU）単位で管理する
-- 操作工数削減のため、編集ページは作らず、一覧内の「編集モード」ON / OFF で在庫数を更新する
-- 画面遷移やヘッダー操作時に未保存の変更がある場合は検知し、保存確認を行う
-- 自動保存は行わず、明示的な保存操作を優先する
-- 一覧での探索補助として、検索・フィルター・並び替えを実装する
+- Inventory is managed at the variant (SKU) level to distinguish color and size combinations.
+- To reduce operational steps, there is no separate edit page.
+Inventory can be updated through an inline "Edit Mode" toggle in the list view.
+- When there are unsaved changes and the user attempts navigation, the system detects the changes and prompts for confirmation.
+- Automatic saving is intentionally avoided to reduce the risk of unintended updates.
+- Search, filtering, and sorting are implemented to support exploration in list views.
 
-#### 注文管理
+#### Order Management
 
-- 注文一覧では検索・ステータス絞り込み・日付絞り込み・並び替えを行える
-- 誤操作防止のため、ステータス更新は注文詳細のみで行う
-- ステータス遷移条件を定義し、不可逆の遷移ルールを保証する
-- shipped 以降はキャンセル不可とする
+- The order list supports search, status filtering, date filtering, and sorting.
+- To prevent operational mistakes, status updates can only be performed from the order detail page.
+- Status transitions are strictly defined to enforce irreversible transition rules.
+- Orders cannot be canceled once they reach the shipped state.
 
-#### 商品管理
+#### Product Management
 
-- 誤操作防止のため、削除（論理削除）は商品編集画面のみで可能とする
-- 在庫・注文履歴への影響防止のため、物理削除ではなく論理削除（soft delete）+ 復元を採用する
-- ゴミ箱画面での探索補助として、検索・並び替えを実装する
-- 完全削除は行わない（管理UIとして提供しない）
+- To prevent accidental operations, soft deletion is only available from the product edit page.
+- To preserve inventory and order history integrity, soft delete + restore is used instead of physical deletion.
+- The trash view supports search and sorting for easier discovery.
+- Permanent deletion is not supported in the admin UI.
 
-#### 決済・在庫反映
+#### Payment and Inventory Update
 
-- 外部決済として Stripe Checkout を採用する
-- 支払い確定は Webhook で受け取り、支払い確定後に在庫を減算する
-- 在庫が 0 の場合、ユーザー側のバリアント選択UIで SOLD OUT を表示する
+- Stripe Checkout is used as the external payment provider.
+- Payment completion is confirmed via Stripe Webhooks.
+- Inventory is decremented only after payment confirmation.
+- If stock reaches 0, the product variant is automatically shown as SOLD OUT in the user interface.
 
-#### ドキュメント方針
+#### Documentation Policy
 
-- `README`: 全体方針（設計思想 / 主要ルール / 仕様の要点）
-- `docs/`: 詳細（API設計 / 画面仕様 / 状態遷移）
+- `README`: high-level policies (design philosophy / major rules / core specifications)
+- `docs/`: detailed specifications (API design / screen specifications / state transitions)
 
 ---
 
@@ -102,14 +103,14 @@ paid → canceled
 processing → canceled
 ```
 
-制約:
-- shipped 以降は canceled 不可
-- ステータス更新は「管理画面の注文詳細」でのみ可能
-- canceled は paid / processing でのみ可能
-- 不正なステータス遷移は サーバー側で拒否する
+Constraints:
+- Orders cannot be canceled after the `shipped` state
+- Status updates can only be performed from the admin order detail page
+- `canceled` is allowed only from `paid` or `processing`
+- Invalid status transitions are rejected by the server
 
 ### 3-2. Order Status & Transitions
-利用ステータス:
+Statuses:
 - pending
 - paid
 - processing
@@ -119,46 +120,50 @@ processing → canceled
 - failed
 - refunded
 
-遷移フロー:
-- pending → paid        （Stripe 決済完了）
+Transition Flow:
+- pending → paid        （Stripe payment completed）
 - pending → failed
-- paid → processing     （管理画面）
-- paid → canceled        (管理画面)
-- processing → shipped  （管理画面）
-- processing → canceled （管理画面）
-- shipped → completed   （管理画面）
+- paid → processing     （admin operation）
+- paid → canceled        (admin operation)
+- processing → shipped  （admin operation）
+- processing → canceled （admin operation）
+- shipped → completed   （admin operation）
 
-禁止される遷移:
-- shipped / completed から canceled への変更
-- completed から processing / shipped への巻き戻し
-- pending から canceled へ遷移
-- 定義されていない status への更新
+Forbidden Transitions:
+- `shipped` or `completed` → `canceled`
+- `completed` → `processing` or `shipped`
+- `pending` → `canceled`
+- Any undefined status transition
 
 ### 3-3. Inventory Constraints
-- stock >= 0 (負の値不可)
-- 在庫変更は管理画面の編集モードのみ
-- 支払い確定(Webhook)後に在庫減算
-- 在庫0 の場合は SOLD OUT 表示 (ユーザー側)
+- `stock >= 0` (negative values are not allowed)
+- Inventory changes are allowed only through admin edit mode
+- Inventory is decremented after payment confirmation via webhook
+- If stock reaches 0, the variant is shown as SOLD OUT
 
 ### 3-4. Product State
 active -> deleted
-deleted -> active (復元可能)
+deleted -> active (restorable)
 
-制約:
-- 論理削除のため物理削除は行わない
-- deleted 状態の商品は一覧の "ゴミ箱" に表示
-- deleted 状態の商品は購入画面に表示しない
+Constraints:
+- Physical deletion is not performed (soft delete only)
+- Deleted products appear in the Trash view
+- Deleted products are not visible on the storefront
 
 ## 4. API Overview
+
+- The API descriptions in this README represent design-oriented specifications used to organize internal admin functionality.
+- Authentication uses Devise session-based authentication, not a public Bearer token API.
+
 ### 4-1. API Common Rules
 - ALL timestamps are **ISO8601** format.
-- 管理画面はDeviseのセッション認証を使用しています。
-- 管理者向けAPIおよび管理画面は管理者ログイン済みセッションを前提としています。
+- The admin interface uses **Devise session authentication**
+- Admin APIs assume an **authenticated admin session**
 - Error response structure:
 ```json
 {
   "error": "ERROR_CODE",
-  "message": "人間向けの説明"
+  "message": "Human-readable explanation"
 }
 ```
 - Pagination format:
@@ -705,6 +710,9 @@ rails db:migrate
 bin/dev
 ```
 ## 7. ER Diagram
+
+- Guest carts are managed **via session storage rather than database tables.**
+- The `stripe_events` table is used to ensure **idempotency and retry control for Stripe webhook processing.**
 
 ```mermaid
 erDiagram
