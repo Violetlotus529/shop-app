@@ -59,8 +59,7 @@
 #### Inventory Management
 
 - Inventory is managed at the **variant (SKU) level** to distinguish color and size combinations.
-- To reduce operational steps, there is **no separate edit page**.
-Inventory can be updated through an **inline "Edit Mode" toggle in the list view**.
+- To reduce operational steps, there is **no separate edit page**. Inventory can be updated through an **inline "Edit Mode" toggle in the list view**.
 - When there are unsaved changes and the user attempts navigation, the system detects the changes and prompts for confirmation.
 - **Automatic saving is intentionally avoided** to reduce the risk of unintended updates.
 - Search, filtering, and sorting are implemented to support exploration in list views.
@@ -253,7 +252,7 @@ Authorization:
 ```json
 {
   "id": "product-uuid",
-  "name": "Tシャツ",
+  "name": "T-shirt",
   "description": "Product description text",
   "category": "tops",
   "price": 2980,
@@ -379,8 +378,8 @@ Authorization:
   "deleted": true
 }
 ```
-`true`=delete
-`false`=restore
+- `true`=delete
+- `false`=restore
 ### Response 200:
 ```json
 {
@@ -402,11 +401,11 @@ Authorization:
 - Requires an authenticated admin session.
 
 ### Query Parameters:
- Parameter | Type     | Required | Description                      |
- --------|--------|------|------------------------------------------|
- q       | string | optional | Partial match search by product name |
- sort    | string | optional | deleted_at_desc / deleted_at_asc     |
- page    | number | optional | Page number (integer ≥ 1)            |
+ Parameter | Type   | Required | Description                          |
+ ----------|--------|----------|--------------------------------------|
+ q         | string | optional | Partial match search by product name |
+ sort      | string | optional | deleted_at_desc / deleted_at_asc     |
+ page      | number | optional | Page number (integer ≥ 1)            |
 
 ### Response 200:
 ```json
@@ -447,7 +446,7 @@ Authorization:
 ```json
 {
   "id": "product-uuid-1",
-  "name": "Tシャツ",
+  "name": "T-shirt",
   "description": "Product description text",
   "category": "tops",
   "price": 2980,
@@ -475,7 +474,7 @@ Authorization:
 
 ### Query Parameters:
  Parameter   | Type   | Required    | Description                                |
- ------------|----|---------|------------------------------------|
+ ------------|--------|-------------|--------------------------------------------|
  q           | string | optional　 　| Partial match search by order number, customer name, or email |
  status      | string | optional    | pending / paid / processing / shipped / completed / canceled / failed / refunded |
  from        | string | optional    | Start date (YYYY-MM-DD)                |
@@ -542,11 +541,11 @@ Authorization:
     "type": "guest",
     "name": "Tanaka Taro",
     "email": "user@example.com",
-    "postal_code": "XX県",
-    "prefecture": "XX市",
-    "city": "XX町",
-    "address_line1": "XXX-XX",
-    "address_line2": "XXXマンション XXX"
+    "postal_code": "123-4567",
+    "prefecture": "Tokyo",
+    "city": "Shibuya",
+    "address_line1": "1-2-3 Jingumae",
+    "address_line2": "ABC Mansion 101"
   },
 
   "order_items": [
@@ -614,7 +613,7 @@ Authorization:
  q           | string | Optional | Partial match search by product name, color, size, or SKU |
  stock_state | string | Optional | all / in_stock / low / out_of_stock              |
  sort        | string | Optional | updated_at_desc / stock_desc / stock_asc         |
- page        | number | Optional | Page number (integer greater than or equal to 1  |
+ page        | number | Optional | Page number (integer greater than or equal to 1) |
 
 ### Response 200:
 ```json
@@ -825,4 +824,5 @@ erDiagram
   CUSTOMERS ||--o{ ORDERS : places
   ORDERS ||--o{ ORDER_ITEMS : includes
   PRODUCT_VARIANTS ||--o{ ORDER_ITEMS : ordered_as
+  STRIPE_EVENTS }o--|| ORDERS : relates_to
 ```
