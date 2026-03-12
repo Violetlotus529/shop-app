@@ -121,13 +121,13 @@ Constraints:
 - refunded
 
 #### Transition Flow
-- pending → paid        （Stripe payment completed）
+- pending → paid (Stripe payment completed)
 - pending → failed
-- paid → processing     （admin operation）
-- paid → canceled        (admin operation)
-- processing → shipped  （admin operation）
-- processing → canceled （admin operation）
-- shipped → completed   （admin operation）
+- paid → processing (admin operation)
+- paid → canceled (admin operation)
+- processing → shipped (admin operation)
+- processing → canceled (admin operation)
+- shipped → completed (admin operation)
 
 #### Forbidden Transitions:
 - `shipped` or `completed` → `canceled`
@@ -180,38 +180,38 @@ Constraints:
 
 | Group      | Method | Path                             | Summary               |
 |-----------|--------|----------------------------------|------------------------|
-| Products  | GET    | /admin/products                 | 商品一覧                 |
-| Products  | GET    | /admin/products/:id             | 商品詳細（編集/プレビュー） |
-| Products  | POST   | /admin/products                 | 商品作成                 |
-| Products  | PUT    | /admin/products/:id             | 商品更新                 |
-| Products  | PATCH  | /admin/products/:id/deleted     | 削除・復元トグル            |
-| Trash     | GET    | /admin/trash/products           | 削除済み商品一覧             |
-| Trash     | GET    | /admin/trash/products/:id       | 削除済み商品詳細             |
-| Orders    | GET    | /admin/orders                   | 注文一覧                    |
-| Orders    | GET    | /admin/orders/:id               | 注文詳細                    |
-| Orders    | PATCH  | /admin/orders/:id/status        | 注文ステータス更新          |
-| Inventory | GET    | /admin/inventories              | 在庫一覧（SKU単位）          |
-| Inventory | PUT    | /admin/api/inventories          | 在庫一括更新                 |
+| Products  | GET    | /admin/products                 | Product list            |
+| Products  | GET    | /admin/products/:id             | Product detail (edit / preview) |
+| Products  | POST   | /admin/products                 | Create product           |
+| Products  | PUT    | /admin/products/:id             | Update product           |
+| Products  | PATCH  | /admin/products/:id/deleted     | Toggle delete / restore   |
+| Trash     | GET    | /admin/trash/products           | Deleted product list      |
+| Trash     | GET    | /admin/trash/products/:id       | Deleted product detail    |
+| Orders    | GET    | /admin/orders                   | Order list                |
+| Orders    | GET    | /admin/orders/:id               | Order detail              |
+| Orders    | PATCH  | /admin/orders/:id/status        | Update order status       |
+| Inventory | GET    | /admin/inventories              | Inventory list (SKU-level)|
+| Inventory | PUT    | /admin/api/inventories          | Bulk inventory update     |
 
 ## 5. API Details
 ### 5-1. Product APIs
 #### GET /admin/products
-概要:
-- 商品一覧を取得する(検索・フィルタ・並び替え・含む)
+Overview:
+- Retrieve a list of products (including search, filtering, and sorting).
 
-認可:
-- 管理者ログイン済みセッションが必要
+Authorization:
+- Requires an authenticated admin session.
 
 ### Headers: 
 Content-Type: application/json
 
 ### Query Parameters:
- パラメータ  | 型     | 必須 | 説明 |
------------|--------|-----|------|
- `q`      | string | 任意 | 商品名・説明の部分一致検索  |
- `status` | string | 任意 | all / published / unpublished |
- `sort`   | string | 任意 | updated_at_desc / updated_at_asc |
- `page`   | number | 任意 | ページ番号（１以上の整数）|
+Parameter | Type 　　　　| Required | Description                      |
+----------|--------|----------|----------------------------------|
+ `q`      | string | optional | Partial match search for product name or description |
+ `status` | string | optional | all / published / unpublished    |
+ `sort`   | string | optional | updated_at_desc / updated_at_asc |
+ `page`   | number | optional | Page number (integer ≥ 1)        |
 
 ### Response 200:
 ```json
@@ -219,7 +219,7 @@ Content-Type: application/json
   "products": [
     {
       "id": "product-uuid",
-      "name": "Tシャツ",
+      "name": "T-shirt",
       "price": 2980,
       "thumbnail_url": "/images/products/xxx.jpg",
       "published": true,
@@ -233,28 +233,28 @@ Content-Type: application/json
 }
 ```
 ### Status Codes:
-- 200 OK: 成功
-- 400 : 不正なクエリパラメータ
-- 401 Unauthorized: 管理者として未ログイン、または認証無効
+- 200 OK: Success
+- 400 Bad Request: Invalid query parameters
+- 401 Unauthorized: Not logged in as admin or invalid authentication
 
 #### GET /admin/products/:id
-概要:
-- 商品の詳細を取得する（編集画面・プレビュー用）。
+Overview:
+- Retrieve product details (used for the edit screen and preview).
 
-認可:
-- 管理者ログイン済みセッションが必要
+Authorization:
+- Requires an authenticated admin session.
 
 ### Path Parameters:
- パラメータ | 型     | 必須 | 説明         |
- --------|--------|-----|--------------|
- id      | string | 必須 | 商品ID(UUID) |
+ Parameter | Type   | Required | Description       |
+ ----------|--------|----------|-------------------|
+ id        | string | required | Product ID (UUID) |
 
 ### Response 200:
 ```json
 {
   "id": "product-uuid",
   "name": "Tシャツ",
-  "description": "商品説明テキスト",
+  "description": "Product description text",
   "category": "tops",
   "price": 2980,
   "image_url":  "/image/xxx.jpg",
@@ -265,16 +265,16 @@ Content-Type: application/json
 }
 ```
 ### Status Codes:
-- 200 OK: 成功
-- 401 Unauthorized: 管理者として未ログイン、または認証無効
-- 404 Not Found: 指定されたIDの商品が存在しない
+- 200 OK: Success
+- 401 Unauthorized: Not logged in as admin or invalid authentication
+- 404 Not Found: Product with the specified ID does not exist
 
 #### POST /admin/products
-概要:
-- 商品を新規作成する。
+Overview:
+- Create a new product.
 
-認可:
-- 管理者ログイン済みセッションが必要
+Authorization:
+- Requires an authenticated admin session.
 
 ### Headers:
 Content-Type: application/json
@@ -282,8 +282,8 @@ Content-Type: application/json
 ### Request Body(JSON):
 ```json
 {
-  "name": "Tシャツ",
-  "description": "商品説明テキスト",
+  "name": "T-shirt",
+  "description": "Product description text",
   "category": "tops",
   "price": 2980,
   "image": "file-id-or-base64"
@@ -293,36 +293,35 @@ Content-Type: application/json
 ```json
 {
   "id": "product-uuid",
-  "message": "商品を作成しました。"
+  "message": "Product created successfully."
 }
 ```
 ### Status Codes:
-- 201 Created: 作成成功
-- 400 Bad Request: 必須項目不足・形式不正
-- 401 Unauthorized: 管理者として未ログイン、または認証無効
-- 422 Unprocessable Entity: バリデーションエラー
-
+- 201 Created: Successfully created
+- 400 Bad Request: Missing required fields or invalid format
+- 401 Unauthorized: Not logged in as admin or invalid authentication
+- 422 Unprocessable Entity: Validation error
 
 #### PUT /admin/products/:id
-概要:
-- 商品本体・基本情報・バリアントをまとめて編集する。
+Overview:
+- Update the product, including its basic information and variants.
 
-認可:
-- 管理者ログイン済みセッションが必要
+Authorization:
+- Requires an authenticated admin session.
 
 ### Headers:
 Content-Type: application/json
 
 ### Path Parameters:
- パラメータ  | 型    | 必須   | 説明          |
- ---------|-------|-------|--------------|
-  id      | string | 必須 | 商品ID（UUID） |
+ Parameter | Type   | Required | Description       |
+ ----------|--------|----------|-------------------|
+  id       | string | required | Product ID (UUID) |
 
 ### Request Body (JSON):
 ```json
 {
-  "name": "Tシャツ",
-  "description": "商品説明テキスト",
+  "name": "T-shirt",
+  "description": "Product description text",
   "category": "tops",
   "price": 2980,
   "image": "file-id-or-base64",
@@ -348,64 +347,66 @@ Content-Type: application/json
 ```json
 {
   "id": "product-uuid",
-  "message": "商品を更新しました。"
+  "message": "Product updated successfully."
 }
 ```
 ### Status Codes:
-- 200 OK: 正常に更新された
-- 400 Bad Request: JSON形成不正・必須項目不足
-- 401 Unauthorized: 管理者として未ログイン、または認証無効
-- 404 Not Found: 指定されたIDの商品が存在しない
-- 422 Unprocessable Entity: バリデーションエラー（価格が負数など）
+- 200 OK: Successfully updated
+- 400 Bad Request: Invalid JSON format or missing required fields
+- 401 Unauthorized: Not logged in as admin or invalid authentication
+- 404 Not Found: Product with the specified ID does not exist
+- 422 Unprocessable Entity: Validation error (e.g., negative price)
 
 #### PATCH /admin/products/:id/deleted
-概要:
-- 商品の論理削除フラグをON/OFFする（削除・復元トグリ）。
-- どの画面から呼んでも「deleted を true/false にするだけ」。
+Overview:
+- Toggle the product logical deletion flag (delete / restore).
+- From any screen, this endpoint simply sets `deleted` to true or false.
 
-認可:
-- 管理者ログイン済みセッションが必要
+Authorization:
+- Requires an authenticated admin session.
 
 ### Headers:
 - Content-Type: application/json
 
 ### Path Parameters:
- パラメータ  | 型     | 必須  | 説明         |
- ---------|--------|------|--------------|
- id       | string | 必須 | 商品ID（UUID） |
+ Parameter  | Type   | Required | Description       |
+ -----------|--------|----------|-------------------|
+ id         | string | required | Product ID (UUID) |
 
 ### Request Body(JSON):
 ```json
 {
-  "deleted": true   //削除する場合は true, 復元する場合は false
+  "deleted": true
 }
 ```
+`true`=delete
+`false`=restore
 ### Response 200:
 ```json
 {
   "id": "product-uuid",
-  "message": "商品を削除しました。"
+  "message": "Product deleted successfully."
 }
 ```
 ### Status Codes:
-- 200 OK: 正常に更新された
-- 400 Bad Request: JSON形式不正・必須項目不足
-- 401 Unauthorized: 管理者として未ログイン、または認証無効
-- 404 Not Found: 指定されたIDの商品が存在しない
+- 200 OK: Successfully updated
+- 400 Bad Request: Invalid JSON format or missing required fields
+- 401 Unauthorized: Not logged in as admin or invalid authentication
+- 404 Not Found: Product with the specified ID does not exist
 
 #### GET /admin/trash/products
-概要:
-- `deleted = true` の商品だけを一覧取得する（検索・並び替えを含む）。
+Overview:
+- Retrieve only products where `deleted = true` (including search and sorting).
 
-認可:
-- 管理者ログイン済みセッションが必要
+Authorization:
+- Requires an authenticated admin session.
 
 ### Query Parameters:
- パラメータ | 型     | 必須 | 説明                              |
- --------|--------|------|-----------------------------------|
- q       | string | 任意 | 商品名での一部一致検索               |
- sort    | string | 任意 | deleted_at_desc / deleted_at_asc |
- page    | number | 任意 | ページ番号(１以上の整数)             |
+ Parameter | Type     | Required | Description                      |
+ --------|--------|------|------------------------------------------|
+ q       | string | optional | Partial match search by product name |
+ sort    | string | optional | deleted_at_desc / deleted_at_asc     |
+ page    | number | optional | Page number (integer ≥ 1)            |
 
 ### Response 200:
 ```json
@@ -413,7 +414,7 @@ Content-Type: application/json
   "products": [
     {
       "id": "uuid-1",
-      "name": "Tシャツ",
+      "name": "T-shirt",
       "published": true,
       "deleted_at": "2026-01-10T12:34:56Z"
     }
@@ -425,29 +426,29 @@ Content-Type: application/json
 }
 ```
 ### Status Codes:
-- 200 OK: 成功
-- 401 Unauthorized: 管理者として未ログイン、または認証無効
-- 404 Not Found: ページ範囲外もしくは該当商品が存在しない
+- 200 OK: Success
+- 401 Unauthorized: Not logged in as admin or invalid authentication
+- 404 Not Found: Page out of range or no matching products
 
 #### GET /admin/trash/products/:id
-概要:
-- `deleted = true` の商品詳細を取得する。
-- `deleted = false`（すでに削除済み）の場合も 404 を返す。
+Overview:
+- Retrieve details of a product where `deleted = true`.
+- If `deleted = false`, the API also returns 404.
 
-認可:
-- 管理者ログイン済みセッションが必要
+Authorization:
+- Requires an authenticated admin session.
 
 ### Path Parameters:
- パラメータ  | 型     | 必須 | 説明         |
- ---------|--------|-----|--------------|
- id       | string | 必須 | 商品ID(UUID) |
+ Parameter | Type   | Required | Description       |
+ ----------|--------|----------|-------------------|
+ id        | string | required | Product ID (UUID) |
 
 ### Response 200:
 ```json
 {
   "id": "product-uuid-1",
   "name": "Tシャツ",
-  "description": "商品説明テキスト",
+  "description": "Product description text",
   "category": "tops",
   "price": 2980,
   "image_url": "/images/xxx.jpg",
@@ -460,27 +461,27 @@ Content-Type: application/json
 }
 ```
 ### Status Codes:
-- 200 OK: 成功
-- 401 Unauthorized: 管理者として未ログイン、または認証無効
-- 404 Not Found: 対象IDが存在しない、または削除されていない
+- 200 OK: Success
+- 401 Unauthorized: Not logged in as admin or invalid authentication
+- 404 Not Found: Target ID does not exist or the product is not deleted
 
 ### 5-2. Order APIs
 #### GET /admin/orders
-概要:
-- 注文一覧を取得する（検索、フィルター、並び替えを含む）。
+Overview:
+- Retrieve the order list (including search, filtering, and sorting).
 
-認可:
-- 管理者ログイン済みセッションが必要
+Authorization:
+- Requires an authenticated admin session.
 
 ### Query Parameters:
- パラメータ     | 型 | 必須    | 説明                                |
+ Parameter   | Type   | Required    | Description                                |
  ------------|----|---------|------------------------------------|
- q           | string | 任意　 　| 注文番号、顧客名、メールアドレスでの一部一致検索 |
- status      | string | 任意    | pending / paid / processing / shipped / completed / canceled / failed / refunded |
- from        | string | 任意    | 開始日（YYYY-MM-DD）                 |
- to          | string | 任意    | 終了日（YYYY-MM-DD）                 |
- sort        | string | 任意    | created_at_desc　/ created_at_asc（注文日時の降順/昇順）　|
- page        | number | 任意    | ページ番号（１以上の整数）              |
+ q           | string | optional　 　| Partial match search by order number, customer name, or email |
+ status      | string | optional    | pending / paid / processing / shipped / completed / canceled / failed / refunded |
+ from        | string | optional    | Start date (YYYY-MM-DD)                |
+ to          | string | optional    | End date (YYYY-MM-DD)            |
+ sort        | string | optional    | created_at_desc　/ created_at_asc　|
+ page        | number | optional    | Page number (integer ≥ 1)              |
  
 ### Response 200:
 ```json
@@ -506,20 +507,20 @@ Content-Type: application/json
 }
 ```
 ### Status Codes:
-- 200 OK: 成功
-- 401 Unauthorized: 管理者として未ログイン、または認証無効
+- 200 OK: Success
+- 401 Unauthorized: Not logged in as admin or invalid authentication
 
 #### GET /admin/orders/:id
-概要:
-- 注文の詳細を取得する（注文情報＋注文に含まれる商品一覧）。
+Overview:
+- Retrieve order details (order information + items included in the order).
 
-認可:
-- 管理者ログイン済みセッションが必要
+Authorization:
+- Requires an authenticated admin session.
 
 ### Path Parameters:
- パラメータ  | 型     | 必須 |  説明         |
- ---------|--------|------|---------------|
- id       | string | 必須 | 注文ID（UUID） |
+ Parameter | Type   | Required | Description     |
+ ----------|--------|----------|-----------------|
+ id        | string | required | Order ID (UUID) |
 ### Response 200:
 ```json
 {
@@ -551,7 +552,7 @@ Content-Type: application/json
   "order_items": [
     {
       "product_id": "product-uuid-1",
-      "product_name": "Tシャツ",
+      "product_name": "T-shirt",
       "color": "BLK",
       "size": "S",
       "quantity": 2,
@@ -562,17 +563,17 @@ Content-Type: application/json
 }
 ```
 ### Status Codes:
-- 200 OK: 成功
-- 401 Unauthorized: 管理者として未ログイン、または認証無効
-- 404 Not Found: 指定されたIDの注文が存在しない
+- 200 OK: Success
+- 401 Unauthorized: Not logged in as admin or invalid authentication
+- 404 Not Found: Order with the specified ID does not exist
 
 #### PATCH /admin/orders/:id/status
-概要:
-- 注文ステータスを更新する。
-- 定義された遷移ルールに従い、不正な遷移は拒否する。
+Overview:
+- Update the order status.
+- Invalid transitions are rejected according to the defined state transition rules.
 
-認可:
-- 管理者ログイン済みセッションが必要
+Authorization:
+- Requires an authenticated admin session.
 
 ### Headers:
 - Content-Type: application/json
@@ -587,33 +588,33 @@ Content-Type: application/json
 ```json
 {
   "id": "order-uuid",
-  "message": "ステータスを更新しました。"
+  "message": "Order status updated successfully."
 }
 ```
 ### Status Codes:
-- 200 OK: 正常に更新された
-- 400 Bad Request: statusが欠落・定義外の値
-- 401 Unauthorized: 管理者として未ログイン、または認証無効
-- 404 Not Found: 注文が存在しない
+- 200 OK: Updated successfully
+- 400 Bad Request: Missing status or invalid value
+- 401 Unauthorized: Admin is not logged in or authentication is invalid
+- 404 Not Found: The order does not exist
 - 422 Unprocessable Entity:
- - Order Status & Transitions に反する遷移を要求した場合
- - 例: shipped/completed の注文に "canceled"を指定した場合
+ - Requested transition violates the defined order status rules
+ - Example: specifying `canceled` for an order already in `shipped` or `completed`
 
 ### 5-3. Inventory APIs
 #### GET /admin/inventories
-概要:
-- バリアント（SKU）単位の在庫一覧を取得する（検索・フィルター・並び替えを含む）。
+Overview:
+- Retrieves the inventory list at the variant (SKU) level, including search, filtering, sorting, and pagination.
 
-認可:
-- 管理者ログイン済みセッションが必要
+Authorization:
+- Requires an authenticated admin session.
 
 ### Query Parameters:
- パラメータ     | 型     | 必須  | 説明                                             |
- ------------|--------|------|--------------------------------------------------|
- q           | string | 任意 | 商品名 / カラー / サイズ / SKU の部分一致検索          |
- stock_state | string | 任意 | all / in_stock / low / out_of_stock              |
- sort        | string | 任意 | updated_at_desc / stock_desc / stock_asc(在庫数の降順/昇順) |
- page        | number | 任意 | ページ番号（１以上の整数）                            |
+ Parameter   | Type   | Required | Description                                  |
+ ------------|--------|----------|----------------------------------------------|
+ q           | string | Optional | Partial match search by product name, color, size, or SKU |
+ stock_state | string | Optional | all / in_stock / low / out_of_stock              |
+ sort        | string | Optional | updated_at_desc / stock_desc / stock_asc         |
+ page        | number | Optional | Page number (integer greater than or equal to 1  |
 
 ### Response 200:
 ```json
@@ -621,7 +622,7 @@ Content-Type: application/json
   "variants": [
     {
       "id": "variant-uuid",
-      "product_name": "Tシャツ",
+      "product_name": "T-shirt",
       "color": "BLK",
       "size": "S",
       "stock": 10,
@@ -635,15 +636,15 @@ Content-Type: application/json
 }
 ```
 ### Status Codes:
-- 200 OK: 成功
-- 401 Unauthorized: 管理者として未ログイン、または認証無効
+- 200 OK: Success
+- 401 Unauthorized: Admin is not logged in or authentication is invalid
 
 #### PUT /admin/api/inventories
-概要:
-- 編集モード ON 中に変更された全ての在庫を一括更新する。
+Overview:
+- Bulk updates all inventory rows modified while edit mode is enabled.
 
-認可:
-- 管理者ログイン済みセッションが必要
+Authorization:
+- Requires an authenticated admin session.
 
 ### Headers:
 - Content-Type: application/json
@@ -667,23 +668,23 @@ Content-Type: application/json
 ```json
 {
   "updated_count": 2,
-  "message": "在庫を更新しました。"
+  "message": "Inventory updated successfully."
 }
 ```
 ### Status Codes:
-- 200 OK: 正常に更新された
-- 400 Bad Request: JSON形式が不正
-- 401 Unauthorized: 管理者として未ログイン、または認証無効
-- 422 Unprocessable Entity: 在庫数が負数などのバリデーション違反
+- 200 OK: Updated successfully
+- 400 Bad Request: Invalid JSON format
+- 401 Unauthorized: Admin is not logged in or authentication is invalid
+- 422 Unprocessable Entity: Validation error, such as negative stock values
 
 ### 5-4. Error Codes:
-- BAD_REQUEST            / JSONフォーマット不正、クエリ不正
-- UNAUTHORIZED           / 管理者として未ログイン、または認証無効
-- INVALID_CREDENTIALS    / ログイン失敗
-- INVALID_TOKEN          / パスワードリセットなどの token 不正
-- NOT_FOUND              / リソースが存在しない
-- VALIDATION_ERROR       / バリデーション違反
-- CONFLICT               / 整合性エラー・復元不可など
+- BAD_REQUEST / Invalid JSON format or invalid query parameters
+- UNAUTHORIZED / Admin is not logged in or authentication is invalid
+- INVALID_CREDENTIALS / Login failed
+- INVALID_TOKEN / Invalid token, such as for password reset
+- NOT_FOUND / Resource does not exist
+- VALIDATION_ERROR / Validation failed
+- CONFLICT / Consistency error or non-restorable state
 
 ## 6. Setup
 ### 6-1. Tech Stack
