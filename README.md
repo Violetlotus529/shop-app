@@ -478,8 +478,8 @@ Authorization:
  q           | string | optional　 　| Partial match search by order number, customer name, or email |
  status      | string | optional    | pending / paid / processing / shipped / completed / canceled / failed / refunded |
  from        | string | optional    | Start date (YYYY-MM-DD)                |
- to          | string | optional    | End date (YYYY-MM-DD)            |
- sort        | string | optional    | created_at_desc　/ created_at_asc　|
+ to          | string | optional    | End date (YYYY-MM-DD)                  |
+ sort        | string | optional    | created_at_desc / created_at_asc　     |
  page        | number | optional    | Page number (integer ≥ 1)              |
  
 ### Response 200:
@@ -824,5 +824,4 @@ erDiagram
   CUSTOMERS ||--o{ ORDERS : places
   ORDERS ||--o{ ORDER_ITEMS : includes
   PRODUCT_VARIANTS ||--o{ ORDER_ITEMS : ordered_as
-  STRIPE_EVENTS }o--|| ORDERS : relates_to
 ```
