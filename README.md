@@ -4,8 +4,8 @@
 
 - A single-store e-commerce application built with Ruby on Rails.
 - This project is an **EC application with an admin panel**, designed for a single apparel store.
-- The system focuses on back-office operations, including product management, inventory management, and order management.
-- Both guest checkout and registered user checkout are supported.
+- The system focuses on **back-office operations**, including product management, inventory management, and order management.
+- Both **guest checkout** and **registered user checkout** are supported.
 - Demo: ----url
 - [Figma - VioletLotus Admin](https://www.figma.com/design/FyMtVPAcQc0eArPW6eT7cV/EC%E3%82%B5%E3%82%A4%E3%83%88?node-id=0-1&t=r2dhyuTUfpk2hdAk-1)
 
@@ -45,46 +45,46 @@
 #### Purpose and Assumptions
 
 - The system assumes an apparel EC site operated by a single store.
-- The admin panel is used by store owners and inventory staff to manage products, inventory, and orders.
+- The admin panel is used by **store owners and inventory staff** to manage products, inventory, and orders.
 - The user-facing side allows customers to browse and purchase products (guest checkout supported).
-- The layout is designed with a 1440px desktop frame width.
-- Since the admin interface contains more decision points, conditions, and navigation complexity, the admin UI is prioritized in the design.
+- The layout is designed with a **1440px desktop frame width**.
+- Since the admin interface contains more decision points, conditions, and navigation complexity, the **admin UI is prioritized in the design**.
 
 #### Separation of Responsibilities (List / Detail / Edit)
 
-- List pages handle exploration, overview, filtering, sorting, selecting items, and navigating to detail pages.
-- Detail/Edit pages handle updates, deletions (soft delete), restoration, and other destructive operations.
-- To prevent accidental operations, destructive actions are generally not available directly from list views.
+- **List pages** handle exploration, overview, filtering, sorting, selecting items, and navigating to detail pages.
+- **Detail/Edit pages** handle updates, deletions (soft delete), restoration, and other destructive operations.
+- To prevent accidental operations, destructive actions are generally **not available directly from list views**.
 
 #### Inventory Management
 
-- Inventory is managed at the variant (SKU) level to distinguish color and size combinations.
-- To reduce operational steps, there is no separate edit page.
-Inventory can be updated through an inline "Edit Mode" toggle in the list view.
+- Inventory is managed at the **variant (SKU) level** to distinguish color and size combinations.
+- To reduce operational steps, there is **no separate edit page**.
+Inventory can be updated through an **inline "Edit Mode" toggle in the list view**.
 - When there are unsaved changes and the user attempts navigation, the system detects the changes and prompts for confirmation.
-- Automatic saving is intentionally avoided to reduce the risk of unintended updates.
+- **Automatic saving is intentionally avoided** to reduce the risk of unintended updates.
 - Search, filtering, and sorting are implemented to support exploration in list views.
 
 #### Order Management
 
-- The order list supports search, status filtering, date filtering, and sorting.
-- To prevent operational mistakes, status updates can only be performed from the order detail page.
-- Status transitions are strictly defined to enforce irreversible transition rules.
-- Orders cannot be canceled once they reach the shipped state.
+- The order list supports **search, status filtering, date filtering, and sorting**.
+- To prevent operational mistakes, **status updates can only be performed from the order detail page**.
+- Status transitions are strictly defined to enforce **irreversible transition rules**.
+- Orders **cannot be canceled once they reach the `shipped` state**.
 
 #### Product Management
 
-- To prevent accidental operations, soft deletion is only available from the product edit page.
-- To preserve inventory and order history integrity, soft delete + restore is used instead of physical deletion.
-- The trash view supports search and sorting for easier discovery.
-- Permanent deletion is not supported in the admin UI.
+- To prevent accidental operations, **soft deletion is only available from the product edit page**.
+- To preserve inventory and order history integrity, **soft delete + restore** is used instead of physical deletion.
+- The trash view supports **search and sorting** for easier discovery.
+- **Permanent deletion is not supported in the admin UI**.
 
 #### Payment and Inventory Update
 
-- Stripe Checkout is used as the external payment provider.
-- Payment completion is confirmed via Stripe Webhooks.
-- Inventory is decremented only after payment confirmation.
-- If stock reaches 0, the product variant is automatically shown as SOLD OUT in the user interface.
+- **Stripe Checkout** is used as the external payment provider.
+- Payment completion is confirmed via **Stripe Webhooks**.
+- Inventory is decremented **only after payment confirmation**.
+- If stock reaches **0**, the product variant is automatically shown as **SOLD OUT** in the user interface.
 
 #### Documentation Policy
 
@@ -104,13 +104,13 @@ processing → canceled
 ```
 
 Constraints:
-- Orders cannot be canceled after the `shipped` state
-- Status updates can only be performed from the admin order detail page
+- Orders **cannot be canceled after the `shipped` state**
+- Status updates can only be performed from the **admin order detail page**
 - `canceled` is allowed only from `paid` or `processing`
-- Invalid status transitions are rejected by the server
+- Invalid status transitions are **rejected by the server**
 
 ### 3-2. Order Status & Transitions
-Statuses:
+#### Statuses
 - pending
 - paid
 - processing
@@ -120,7 +120,7 @@ Statuses:
 - failed
 - refunded
 
-Transition Flow:
+#### Transition Flow
 - pending → paid        （Stripe payment completed）
 - pending → failed
 - paid → processing     （admin operation）
@@ -129,7 +129,7 @@ Transition Flow:
 - processing → canceled （admin operation）
 - shipped → completed   （admin operation）
 
-Forbidden Transitions:
+#### Forbidden Transitions:
 - `shipped` or `completed` → `canceled`
 - `completed` → `processing` or `shipped`
 - `pending` → `canceled`
@@ -137,23 +137,25 @@ Forbidden Transitions:
 
 ### 3-3. Inventory Constraints
 - `stock >= 0` (negative values are not allowed)
-- Inventory changes are allowed only through admin edit mode
-- Inventory is decremented after payment confirmation via webhook
-- If stock reaches 0, the variant is shown as SOLD OUT
+- Inventory changes are allowed **only through admin edit mode**
+- Inventory is decremented **after payment confirmation via webhook**
+- If stock reaches **0**, the variant is shown as **SOLD OUT**
 
 ### 3-4. Product State
+```text
 active -> deleted
 deleted -> active (restorable)
+```
 
 Constraints:
 - Physical deletion is not performed (soft delete only)
-- Deleted products appear in the Trash view
-- Deleted products are not visible on the storefront
+- Deleted products appear in the **Trash view**
+- Deleted products are **not visible on the storefront**
 
 ## 4. API Overview
 
-- The API descriptions in this README represent design-oriented specifications used to organize internal admin functionality.
-- Authentication uses Devise session-based authentication, not a public Bearer token API.
+- The API descriptions in this README represent **design-oriented specifications used to organize internal admin functionality**.
+- Authentication uses **Devise session-based authentication**, not a public Bearer token API.
 
 ### 4-1. API Common Rules
 - ALL timestamps are **ISO8601** format.
