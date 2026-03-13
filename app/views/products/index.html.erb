@@ -1,69 +1,104 @@
-<h1>商品一覧</h1>
+<section class="section">
+  <h1 class="h1">Products</h1>
 
-<%= form_with url: products_path, method: :get, local: true do %>
-  <div style="display:flex; gap:12px; flex-wrap; align-items:flex-end;">
-    <div>
-      <label>検索</label><br>
-      <input type="text" name="q" value="<%= @q %>" placeholder="商品名 / 説明">
-    </div>
+  <div class="stack-24">
+    <%= form_with url: products_path, method: :get, local: true, class: "form form--search" do %>
+      <div class="search-bar">
+        <div class="search-bar__item">
+          <label class="form__label" for="q">Search</label>
+          <input
+            id="q"
+            class="form__input"
+            type="text"
+            name="q"
+            value="<%= @q %>"
+            placeholder="Product name"
+          >
+        </div>
 
-    <div>
-      <label>並び替え</label><br>
-      <select name="sort">
-        <option value="updated_at_desc" <%= "selected" if @sort == "updated_at_desc" %>>新しい順</option>
-        <option value="updated_at_asc"  <%= "selected" if @sort == "updated_at_asc"  %>>古い順</option>
-      </select>
-    </div>
+        <div class="search-bar__item search-bar__item--sm">
+          <label class="form__label" for="sort">Sort</label>
+          <select id="sort" class="form__select" name="sort">
+            <option value="updated_at_desc" <%= "selected" if @sort == "updated_at_desc" %>>Newest</option>
+            <option value="updated_at_asc"  <%= "selected" if @sort == "updated_at_asc"  %>>Oldest</option>
+          </select>
+        </div>
 
-    <div>
-      <% Product::CATEGORIES.each do |c| %>
-        <%= link_to c, products_path(request.query_parameters.merge(category: c, page: 1)) %>
-      <% end %>
-      <%= link_to "all", products_path(request.query_parameters.except(:category).merge(page: 1)) %>
-    </div>
-
-    <div>
-      <button type="submit">検索</button>
-      <%= link_to "クリア", products_path %>
-    </div>
-  </div>
-<% end %>
-
-<hr>
-
-<div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:24px;">
-  <% @products.each do |p| %>
-    <div style="text-align:center;">
-      <div style="height:220px; display:flex; justify-content:center; align-items:center;">
-        <% if p.main_image.attached? %>
-          <%= image_tag p.main_image, style: "width: 157px; height: 180px; object-fit:cover;" %>
-        <% end %>
+        <div class="search-bar__actions">
+          <button type="submit" class="btn btn--primary">Search</button>
+          <%= link_to "Clear", products_path, class: "btn btn--secondary" %>
+        </div>
       </div>
 
-      <div>(ブランド名)</div>
-      <div><%= link_to p.name, product_path(p) %></div>
-      <div><%= number_to_currency(p.price_cents, unit: "¥", precision: 0) %></div>
+      <div class="category-tabs">
+        <% Product::CATEGORIES.each do |c| %>
+          <% is_current = (@category.to_s == c.to_s) %>
+          <% label = { "tops" => "トップス", "bottoms" => "ボトムス", "outer" => "アウター", "bag" => "バッグ", "goods" => "グッズ" }.fetch(c.to_s, c.to_s) %>
+
+          <% if is_current %>
+            <span class="tab is-current"><%= label %></span>
+          <% else %>
+            <%= link_to label,
+                  products_path(request.query_parameters.merge(category: c, page: 1)),
+                  class: "tab" %>
+          <% end %>
+        <% end %>
+
+        <% is_all = (@category.to_s == "all") %>
+        <% if is_all %>
+          <span class="tab is-current">All</span>
+        <% else %>
+          <%= link_to "All",
+                products_path(request.query_parameters.except(:category).merge(page: 1)),
+                class: "tab" %>
+        <% end %>
+      </div>
+    <% end %>
+
+    <div class="product-grid">
+      <% @products.each do |p| %>
+        <div class="product-card">
+          <%= link_to product_path(p), class: "product-card__link" do %>
+            <div class="product-card__media">
+              <% if p.main_image.attached? %>
+                <%= image_tag p.main_image, class: "product-card__img" %>
+              <% else %>
+                <div class="product-card__placeholder"></div>
+              <% end %>
+            </div>
+
+            <div class="product-card__meta">
+              <%# brand_name 追加済み前提。未追加なら空表示で問題なし %>
+              <% if p.respond_to?(:brand_name) && p.brand_name.present? %>
+                <div class="product-card__brand text-sm text-muted"><%= p.brand_name %></div>
+              <% end %>
+
+              <div class="product-card__name"><%= p.name %></div>
+              <div class="product-card__price"><%= number_to_currency(p.price_cents, unit: "¥", precision: 0) %></div>
+              <div class="product-card__tax text-sm text-muted">tax included</div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
     </div>
-  <% end %>
-</div>
 
+    <div class="pager">
+      <% page = (@page || 1).to_i %>
+      <% total_pages = (@total_pages || 1).to_i %>
 
-<hr>
+      <div class="pager__meta text-sm text-muted">
+        total: <%= @total %> / page: <%= page %> of <%= [total_pages, 1].max %>
+      </div>
 
-<% page = (@page || 1).to_i %>
-<% total_pages = (@total_pages || 1).to_i %>
+      <div class="pager__actions">
+        <% if page > 1 %>
+          <%= link_to "Prev", products_path(request.query_parameters.merge(page: page - 1)), class: "btn btn--secondary" %>
+        <% end %>
 
-<div style="display:flex; gap:12px; align-items:center;">
-  <div>total: <%= @total %></div>
-  <div>page: <%= page %> / <%= [total_pages, 1].max %></div>
-
-  <div style="margin-left:auto;">
-    <% if page > 1 %>
-      <%= link_to "前へ", products_path(request.query_parameters.merge(page: page - 1)) %>
-    <% end %>
-
-    <% if page < total_pages %>
-      <%= link_to "次へ", products_path(request.query_parameters.merge(page: page + 1)) %>
-    <% end %>
+        <% if page < total_pages %>
+          <%= link_to "Next", products_path(request.query_parameters.merge(page: page + 1)), class: "btn btn--secondary" %>
+        <% end %>
+      </div>
+    </div>
   </div>
-</div>
+</section>

@@ -1,22 +1,90 @@
-<h1><%= @product.name %> の詳細</h1>
+<div class="a-page">
+  <div class="a-head">
+    <h1 class="a-title"><%= @product.name %></h1>
 
-<p>ID: <%= @product.id %></p>
-<p>公開: <%= @product.published? ? "公開" : "非公開" %></p>
-<p>更新日時: <%= l(@product.updated_at) %></p>
+    <div class="a-actions">
+      <%= link_to "一覧に戻る", admin_trash_products_path, class: "a-btn" %>
+      <%= button_to "復元",
+            deleted_admin_product_path(@product),
+            method: :patch,
+            params: { deleted: false },
+            data: { turbo_confirm: "#{@product.name} を復元しますか？" },
+            class: "a-btn a-btn--primary" %>
+    </div>
+  </div>
 
-<hr>
+  <div class="a-grid">
+    <!-- 左：商品情報 -->
+    <div class="a-card">
+      <h2 class="a-subtitle">商品情報</h2>
 
-<h2>バリアント</h2>
-<% @product.product_variants.each do |v| %>
-  <div><%= v.color %> / <%= v.size %></div>
-<% end %>
+      <dl class="a-kv">
+        <dt>ID</dt><dd><%= @product.id %></dd>
+        <dt>公開</dt>
+        <dd>
+          <span class="a-pill <%= @product.published? ? "a-pill--on" : "a-pill--off" %>">
+            <%= @product.published? ? "公開" : "非公開" %>
+          </span>
+        </dd>
+        <dt>カテゴリ</dt><dd><%= @product.category %></dd>
+        <dt>価格</dt><dd>¥<%= number_with_delimiter(@product.price_cents) %></dd>
+        <dt>更新日時</dt><dd><%= l(@product.updated_at) %></dd>
+      </dl>
 
-<hr>
+      <div class="a-help">※ ゴミ箱内の商品のため、購入画面には表示されません（deleted=true）。</div>
+    </div>
 
-<%= button_to "復元",
-  deleted_admin_product_path(@product),
-  method: :patch,
-  params: { deleted: false },
-  form: { onsubmit: "return confirm('#{@product.name} を復元しますか？')" } %>
+    <!-- 中央：バリアント -->
+    <div class="a-card a-card--table">
+      <h2 class="a-subtitle">バリアント</h2>
 
-<%= link_to "一覧に戻る", admin_trash_products_path %>
+      <div class="a-tableWrap">
+        <table class="a-table" style="min-width: 520px;">
+          <thead>
+            <tr>
+              <th>COLOR</th>
+              <th>SIZE</th>
+              <th>SKU</th>
+              <th class="a-th--right">状態</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @product.product_variants.each do |v| %>
+              <tr>
+                <td><%= v.color %></td>
+                <td><%= v.size %></td>
+                <td><%= v.sku %></td>
+                <td>
+                  <span class="a-pill <%= v.deleted? ? "a-pill--off" : "a-pill--on" %>">
+                    <%= v.deleted? ? "削除中" : "有効" %>
+                  </span>
+                </td>
+              </tr>
+            <% end %>
+
+            <% if @product.product_variants.blank? %>
+              <tr>
+                <td colspan="4" class="a-empty">バリアントはありません。</td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 右：説明/画像（あれば） -->
+    <div class="a-card">
+      <h2 class="a-subtitle">説明</h2>
+      <div style="white-space:pre-wrap;"><%= @product.description.presence || "（なし）" %></div>
+
+      <div style="height:12px;"></div>
+
+      <h2 class="a-subtitle">画像</h2>
+      <% if @product.main_image.attached? %>
+        <%= image_tag @product.main_image, class: "a-image" %>
+      <% else %>
+        <div class="a-help">画像は未登録です。</div>
+      <% end %>
+    </div>
+  </div>
+</div>

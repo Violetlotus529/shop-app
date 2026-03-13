@@ -1,4 +1,4 @@
-class Admin::ProductsController < ApplicationController
+class Admin::ProductsController < Admin::BaseController
   PER_PAGE = 20
   before_action :set_product, only: %i[show edit update]
   def index
@@ -53,8 +53,26 @@ class Admin::ProductsController < ApplicationController
 
   def deleted
     @product = Product.find(params[:id])
-    @product.update!(deleted: !@product.deleted)
+    flag = ActiveModel::Type::Boolean.new.cast(params[:deleted])
+
+    @product.update!(deleted: flag)
     redirect_to admin_products_path, notice: "更新しました"
+  rescue ActiveRecord::RecordInvalid => e
+    redirect_back fallback_location: admin_products_path, alert: e.record.errors.full_messages.join(", ")
+  end
+
+  def purge_main_image
+    @product = Product.find(params[:id])
+
+    unless @product.main_image.attached?
+      redirect_to edit_admin_product_path(@product), alert: "画像がありません"
+      return
+    end
+
+    @product.main_image.purge
+    redirect_to edit_admin_product_path(@product), notice: "画像を削除しました"
+  rescue ActiveRecord::RecordNorFound
+    redirect_to admin_products_path, alert: "商品が見つかりません"
   end
 
   private
@@ -70,12 +88,13 @@ class Admin::ProductsController < ApplicationController
       :price_cents,
       :published,
       :category,
+      :main_image,
       product_variants_attributes: [
         :id,
         :color,
         :size,
         :sku,
-        :_destroy
+        :deleted
       ]
     )
   end

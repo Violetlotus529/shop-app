@@ -1,5 +1,6 @@
 class CheckoutsController < ApplicationController
   def create
+    Rails.logger.warn("[stripe] api_key_present=#{Stripe.api_key.present?} env_present=#{ENV['STRIPE_SECRET_KEY'].present?}")
     rows = build_cart_rows!
 
     total_cents = rows.sum { |r| r[:subtotal_cents] }
@@ -7,6 +8,7 @@ class CheckoutsController < ApplicationController
 
     order = Order.create!(
       customer: (customer_signed_in? ? current_customer : nil),
+      guest_order_number: (customer_signed_in? ? nil :SecureRandom.alphanumeric(12)),
       status: :pending,
       total_cents: total_cents,
       customer_name: customer_signed_in? ? current_customer.name : params[:customer_name],

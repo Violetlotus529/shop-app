@@ -1,51 +1,70 @@
-<h1>Inventory</h1>
+<div class="a-page">
+  <div class="a-head">
+    <h1 class="a-title">在庫管理</h1>
 
-<%= form_with url: admin_inventories_path, method: :get, local: true do %>
-  <input type="text" name="q" value="<%= @q %>" placeholder="商品名 / color / size">
+    <div class="a-actions">
+      <label class="a-toggle">
+        <input id="inventory-edit-toggle" type="checkbox">
+        <span>編集モード</span>
+      </label>
 
-  <select name="stock_state">
-    <option value="">all</option>
-    <option value="in_stock">in_stock</option>
-    <option value="out_of_stock">out_of_stock</option>
-    <option value="low">low (1-4)</option>
-  </select>
+      <button type="button" id="save-inventories" class="a-btn a-btn--primary" style="display:none;" disabled>
+        保存
+      </button>
+    </div>
+  </div>
 
-  <select name="sort">
-    <option value="updated_at_desc" <%= "selected" if @sort == "updated_at_decs" %>>updated_at_desc</option>
-    <option value="stock_asc"       <%= "selected" if @sort == "stock_asc" %>>stock_asc</option>
-    <option value="stock_desc"      <%= "selected" if @sort == "stock_desc" %>>stock_desc</option>
-  </select>
+  <div class="a-card">
+    <%= form_with url: admin_inventories_path, method: :get, local: true, id: "inventory-filters", class: "a-filters" do %>
+      <div class="a-field">
+        <label class="a-label">検索</label>
+        <input class="a-input" type="text" name="q" value="<%= @q %>" placeholder="商品名 / color / size / sku">
+      </div>
 
-  <button type="submit">検索</button>
-<% end %>
+      <div class="a-field">
+        <label class="a-label">在庫</label>
+        <select class="a-select" name="stock_state">
+          <option value="">全て</option>
+          <option value="in_stock" <%= "selected" if params[:stock_state] == "in_stock" %>>在庫あり</option>
+          <option value="out_of_stock" <%= "selected" if params[:stock_state] == "out_of_stock" %>>在庫切れ</option>
+          <option value="low" <%= "selected" if params[:stock_state] == "low" %>>残り僅か（1〜4）</option>
+        </select>
+      </div>
 
-<hr>
+      <div class="a-field">
+        <label class="a-label">並び替え</label>
+        <select class="a-select" name="sort">
+          <option value="updated_at_desc" <%= "selected" if @sort == "updated_at_desc" %>>更新順</option>
+          <option value="stock_asc" <%= "selected" if @sort == "stock_asc" %>>在庫数が少ない順</option>
+          <option value="stock_desc" <%= "selected" if @sort == "stock_desc" %>>在庫数が多い順</option>
+        </select>
+      </div>
 
-<button type="button" id="save-inventories">保存</button>
-
-<div id="pagination"></div>
-
-<table border="1" cellpadding="6" cellspacing="0" style="width:100%;">
-  <thead>
-    <tr>
-      <th>Product</th>
-      <th>SKU</th>
-      <th>Color</th>
-      <th>Size</th>
-      <th>Stock</th>
-      <th>Updated</th>
-    </tr>
-  </thead>
-  <tbody>
-    <% @variants.each do |v| %>
-      <tr>
-        <td><%= v.product&.name %></td>
-        <td><%= v.sku %></td>
-        <td><%= v.color %></td>
-        <td><%= v.size %></td>
-        <td><%= v.stock %></td>
-        <td><%= l(v.updated_at) %></td>
-      <tr>
+      <div class="a-field a-field--btn">
+        <button type="submit" class="a-btn">検索</button>
+      </div>
     <% end %>
-  </tbody>
-</table>
+  </div>
+
+  <div class="a-card a-card--table">
+    <div id="pagination" class="a-pagination"></div>
+
+    <div class="a-tableWrap">
+      <table class="a-table">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Color</th>
+            <th>Size</th>
+            <th class="a-th--right">Stock</th>
+          </tr>
+        </thead>
+        <tbody id="inventories-body"></tbody>
+      </table>
+    </div>
+
+    <p class="a-help">
+      編集モードONで在庫数を変更し、保存を押してください。
+    </p>
+  </div>
+</div>

@@ -1,25 +1,75 @@
-<h1><%= @product.name %></h1>
-<p><%= @product.description %></p>
+<section class="section">
+  <div class="stack-24">
+    <div class="product-show">
+      <div class="product-show__media">
+        <% if @product.main_image.attached? %>
+          <%= image_tag @product.main_image, class: "product-show__img" %>
+        <% else %>
+          <div class="product-show__placeholder"></div>
+        <% end %>
+      </div>
 
-<% sold_out = @variants.none? { |v| v.stock.to_i > 0 } %>
+      <div class="product-show__info">
+        <div>
+          <h1 class="h1"><%= @product.name %></h1>
+          <% if @product.description.present? %>
+            <p class="text-muted"><%= @product.description %></p>
+          <% end %>
+          <div class="text-sm text-muted">tax included</div>
+        </div>
+        
+        <div class="product-show__price">
+          <%= number_to_currency(@product.price_cents, unit: "¥", precision: 0) %>
+        </div>
 
-<%= form_with url: cart_items_path, method: :post, local: true do %>
-  <select name="product_variant_id" required <%= "disabled" if sold_out %>>
-    <% @variants.each do |v| %>
-      <% label = "#{v.color} / #{v.size}" %>
+        <% sold_out = @variants.none? { |v| v.stock.to_i > 0 } %>
 
-      <% if v.stock.to_i > 0 %>
-        <option value="<%= v.id %>"><%= label %></option>
-      <% else %>
-        <option value="<%= v.id %>" disabled><%= label %> (SOLD OUT)</option>
-      <% end %>
-    <% end %>
-  </select>
+        <% if sold_out %>
+          <div class="notice notice--danger">SOLD OUT</div>
+        <% end %>
 
-  <% if sold_out %>
-    <p style="color: #c00;">SOLD OUT</p>
-  <% end %>
+        <%= form_with url: cart_items_path, method: :post, local: true, class: "form product-show__form stack-12" do %>
+          <div class="form__row">
+            <label class="form__label" for="product_variant_id">Variant</label>
+            <select
+              id="product_variant_id"
+              class="form__select"
+              name="product_variant_id"
+              required
+              <%= "disabled" if sold_out %>
+            >
+              <% @variants.each do |v| %>
+                <% label = "#{v.color} / #{v.size}" %>
+                <% if v.stock.to_i > 0 %>
+                  <option value="<%= v.id %>"><%= label %></option>
+                <% else %>
+                  <option value="<%= v.id %>" disabled><%= label %> (SOLD OUT)</option>
+                <% end %>
+              <% end %>
+            </select>
+          </div>
 
-  <input type="number" name="quantity" value="1" min="1">
-  <button type="submit">カートに追加</button>
-<% end %>
+          <div class="form__row">
+            <label class="form__label" for="quantity">Quantity</label>
+            <input
+              id="quantity"
+              class="form__input"
+              type="number"
+              name="quantity"
+              value="1"
+              min="1"
+              <%= "disabled" if sold_out %>
+            >
+          </div>
+
+          <div class="stack-12">
+            <button type="submit" class="btn btn--primary btn--block" <%= "disabled" if sold_out %>>
+              Add to cart
+            </button>
+            <%= link_to "Back to products", products_path, class: "btn btn--secondary btn--block" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</section>

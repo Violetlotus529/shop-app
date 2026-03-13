@@ -1,10 +1,18 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("turbo:load", () => {  try {
   const tbody = document.getElementById("inventories-body")
   if (!tbody) return
 
   const saveBtn = document.getElementById("save-inventories")
   const form = document.getElementById("inventory-filters")
   const paginationEl = document.getElementById("pagination")
+  const editToggle = document.getElementById("inventory-edit-toggle")
+
+  function setEditing(on) {
+    const inputs = tbody.querySelectorAll("input[data-variant-id]")
+    inputs.forEach(input => { input.disabled = !on })
+    if (saveBtn) saveBtn.style.display = on ? "" : "none"
+    if (!on && saveBtn) saveBtn.disabled = true
+  }
 
   function renderRows(variants) {
     tbody.innerHTML = ""
@@ -21,11 +29,31 @@ document.addEventListener("DOMContentLoaded", () => {
             data-variant-id="${v.id}"
             data-original-stock="${v.stock}"
             min="0"
+            step="1"
+            disabled
           >
         </td>
       `
       tbody.appendChild(tr)
     })
+
+    // 再描画後に編集状態を反映
+    setEditing(!!(editToggle && editToggle.checked))
+
+  }
+
+  function collectUpdates() {
+    const updates = []
+    const inputs = tbody.querySelectorAll("input[data-variant-id]")
+
+    inputs.forEach(input => {
+      const original = input.dataset.originalStock
+      const current = input.value
+      if (original !== current) {
+        updates.push({ id: Number(input.dataset.variantId), stock: Number(current) })
+      }
+    })
+    return updates
   }
 
   function confirmDiscardIfDirty() {
@@ -46,7 +74,6 @@ document.addEventListener("DOMContentLoaded", () => {
     prev.disabled = current_page <= 1
     prev.addEventListener("click", () => {
       if (!confirmDiscardIfDirty()) return
-
       currentParams.set("page", String(current_page - 1))
       loadInventories(currentParams)
     })
@@ -57,7 +84,6 @@ document.addEventListener("DOMContentLoaded", () => {
     next.disabled = current_page >= total_pages
     next.addEventListener("click", () => {
       if (!confirmDiscardIfDirty()) return
-
       currentParams.set("page", String(current_page + 1))
       loadInventories(currentParams)
     })
@@ -83,21 +109,38 @@ document.addEventListener("DOMContentLoaded", () => {
     history.replaceState(null, "", `${location.pathname}${qs ? `?${qs}` : ""}`)
   }
 
-  function collectUpdates() {
-    const updates = []
-    const inputs = tbody.querySelectorAll("input[data-variant-id]")
+  function syncFormFromQuery(params) {
+    if (!form) return
 
-    inputs.forEach(input => {
-      const original = input.dataset.originalStock
-      const current = input.value
-      if (original !== current) {
-        updates.push({ id: input.dataset.variantId, stock: current })
+    const esc = (s) => (window.CSS && CSS.escape ? CSS.escape(s) : s)
+
+    for (const [key, value] of params.entries()) {
+      const el = form.querySelector(`[name="${esc(key)}"]`)
+      if (el) el.value = value
+    }
+  }
+  // 編集トグル
+  if (editToggle) {
+    editToggle.checked = false
+    setEditing(false)
+
+    editToggle.addEventListener("change", () => {
+      if (!editToggle.checked) {
+        // ON→OFFで未保存があれば確認、破棄なら元に戻す
+        if (!confirmDiscardIfDirty()) {
+          editToggle.checked = true
+          return
+        }
+        // 破棄：表示値を original に戻す
+        tbody.querySelectorAll("input[data-variant-id]").forEach(input => {
+          input.value = input.dataset.originalStock
+        })
       }
+      setEditing(editToggle.checked)
     })
-
-    return updates
   }
 
+  // フィルタ
   if (form) {
     form.addEventListener("submit", (e) => {
       e.preventDefault()
@@ -109,12 +152,29 @@ document.addEventListener("DOMContentLoaded", () => {
     })
   }
 
+  // 入力変更で保存ボタン有効化
+  tbody.addEventListener("input", (e) => {
+    const input = e.target
+    if (!(input instanceof HTMLInputElement)) return
+    if (!input.matches("input[data-variant-id]")) return
+    if (!editToggle || !editToggle.checked) return
+
+    if (saveBtn) saveBtn.disabled = collectUpdates().length === 0
+  })
+
+  // 保存（variantsで送る）
   if (saveBtn) {
     saveBtn.addEventListener("click", async () => {
-      const updates = collectUpdates()
+      const variants = collectUpdates()
 
-      if (updates.length === 0) {
+      if (variants.length === 0) {
         alert("変更はありません")
+        return
+      }
+
+      // 最低限バリデーション
+      if (variants.some(v => !Number.isInteger(v.stock) || v.stock < 0)) {
+        alert("在庫数は0以上の整数で入力してください")
         return
       }
 
@@ -125,32 +185,29 @@ document.addEventListener("DOMContentLoaded", () => {
             "Content-Type": "application/json",
             "X-CSRF-Token": document.querySelector('meta[name="csrf-token"]').content
           },
-          body: JSON.stringify({ updates })
+          body: JSON.stringify({ variants })
         })
 
         const json = await res.json().catch(() => ({}))
         if (!res.ok) throw json
 
-        // 保存成功後、original を更新して「変更検知」をリセット
+        // 保存成功後、original を更新して変更検知をリセット
         const inputs = tbody.querySelectorAll("input[data-variant-id]")
         inputs.forEach(input => { input.dataset.originalStock = input.value })
 
+        saveBtn.disabled = true
         alert(`更新件数: ${json.updated_count}`)
       } catch (err) {
         alert(err.message || err.error || "保存に失敗しました")
       }
     })
   }
-  
-  function syncFormFromQuery(params) {
-    if (!form) return
-    for (const [key, value] of params.entries()) {
-      const el = form.querySelector(`[name="${CSS.escape(key)}"]`)
-      if (el) el.value = value
-    }
-  }
 
   const initialParams = new URLSearchParams(location.search)
   syncFormFromQuery(initialParams)
   loadInventories(initialParams)
+  } catch (e) {
+    console.error("[inventories] crashed", e)
+    alert("inventories.js crashed (see console)")
+  }
 })

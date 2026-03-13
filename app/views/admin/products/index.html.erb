@@ -1,77 +1,110 @@
-<h1>商品一覧</h1>
+<div class="a-page">
 
-<%= form_with url: admin_products_path, method: :get, local: true do %>
-  <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;">
-    <div>
-      <label>検索</label><br>
-      <input type="text" name="q" value="<%= @q %>" placeholder="商品名 / 説明">
-    </div>
+  <div class="a-head">
+    <h1 class="a-title">商品一覧</h1>
 
-    <div>
-      <label>公開状態</label><br>
-      <select name="status">
-        <option value="all"        <%= "selected" if @status == "all" %>>全て</option>
-        <option value="published"  <%= "selected" if @status == "published" %>>公開</option>
-        <option value="unpublished"<%= "selected" if @status == "unpublished" %>>非公開</option>
-      </select>
-    </div>
-
-    <div>
-      <label>並び替え</label><br>
-      <select name="sort">
-        <option value="updated_at_desc" <%= "selected" if @sort == "updated_at_desc" %>>新しい順</option>
-        <option value="updated_at_asc"  <%= "selected" if @sort == "updated_at_asc"  %>>古い順</option>
-      </select>
-    </div>
-
-    <div>
-      <button type="submit">検索</button>
-      <%= link_to "クリア", admin_products_path %>
+    <div class="a-actions">
+      <%= link_to "新規作成", new_admin_product_path, class: "a-btn a-btn--primary" %>
     </div>
   </div>
-<% end %>
 
-<hr>
+  <!-- filters -->
+  <div class="a-card">
+    <%= form_with url: admin_products_path, method: :get, local: true, class: "a-filters" do %>
 
-<table>
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>名前</th>
-      <th>価格</th>
-      <th>公開</th>
-      <th>更新日時</th>
-      <th></th>
-    </tr>
-  </thead>
+      <div class="a-field">
+        <label class="a-label">検索</label>
+        <input
+          type="text"
+          name="q"
+          value="<%= @q %>"
+          placeholder="商品名 / 説明"
+          class="a-input"
+        >
+      </div>
 
-  <tbody>
-    <% @products.each do |product| %>
-      <tr>
-        <td><%= product.id %></td>
-        <td><%= link_to product.name, admin_product_path(product) %></td>
-        <td><%= number_to_currency(product.price_cents, unit: "¥", precision: 0) %></td>
-        <td><%= product.published ? "公開" : "非公開" %></td>
-        <td><%= l(product.updated_at) %></td>
-        <td><%= link_to "編集", edit_admin_product_path(product) %></td>
-      </tr>
+      <div class="a-field">
+        <label class="a-label">公開状態</label>
+        <select name="status" class="a-select">
+          <option value="all" <%= "selected" if @status == "all" %>>全て</option>
+          <option value="published" <%= "selected" if @status == "published" %>>公開</option>
+          <option value="unpublished" <%= "selected" if @status == "unpublished" %>>非公開</option>
+        </select>
+      </div>
+
+      <div class="a-field">
+        <label class="a-label">並び替え</label>
+        <select name="sort" class="a-select">
+          <option value="updated_at_desc" <%= "selected" if @sort == "updated_at_desc" %>>新しい順</option>
+          <option value="updated_at_asc"  <%= "selected" if @sort == "updated_at_asc"  %>>古い順</option>
+        </select>
+      </div>
+
+      <div class="a-field a-field--btn">
+        <button type="submit" class="a-btn">検索</button>
+      </div>
+
     <% end %>
-  </tbody>
-</table>
+  </div>
 
-<hr>
+  <!-- table -->
+  <div class="a-card a-card--table">
+    <div class="a-tableWrap">
+      <table class="a-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>商品名</th>
+            <th>価格</th>
+            <th>公開</th>
+            <th>更新日時</th>
+            <th></th>
+          </tr>
+        </thead>
 
-<div style="display:flex; gap:12px; align-items:center;">
-  <div>total: <%= @total %></div>
-  <div>page: <%= @page %> / <%= [@total_pages, 1].max %></div>
+        <tbody>
+          <% @products.each do |product| %>
+            <tr>
+              <td><%= product.id %></td>
 
-  <div style="margin-left:auto;">
-    <% if @page > 1 %>
-      <%= link_to "前へ", admin_products_path(request.query_parameters.merge(page: @page - 1)) %>
-    <% end %>
+              <td>
+                <%= link_to product.name, admin_product_path(product) %>
+              </td>
 
-    <% if @page < @total_pages %>
-      <%= link_to "次へ", admin_products_path(request.query_parameters.merge(page: @page + 1)) %>
-    <% end %>
+              <td>
+                ¥<%= number_with_delimiter(product.price_cents) %>
+              </td>
+
+              <td>
+                <span class="a-pill <%= product.published? ? "a-pill--on" : "a-pill--off" %>">
+                  <%= product.published? ? "公開" : "非公開" %>
+                </span>
+              </td>
+              <td>
+                <%= l(product.updated_at) %>
+              </td>
+
+              <td>
+                <%= link_to "編集", edit_admin_product_path(product), class: "a-btn" %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="a-pagination">
+      <div>total: <%= @total %></div>
+      <div>page: <%= @page %> / <%= [@total_pages, 1].max %></div>
+
+      <% if @page > 1 %>
+        <%= link_to "前へ", admin_products_path(request.query_parameters.merge(page: @page - 1)), class: "a-btn" %>
+      <% end %>
+
+      <% if @page < @total_pages %>
+        <%= link_to "次へ", admin_products_path(request.query_parameters.merge(page: @page + 1)), class: "a-btn" %>
+      <% end %>
+    </div>
+
   </div>
 </div>

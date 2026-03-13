@@ -1,6 +1,10 @@
-class Admin::Api::InventoriesController < ApplicationController
+class Admin::Api::InventoriesController < Admin::BaseController
   def index
-    scope = ProductVariant.includes(:product)
+    scope = ProductVariant
+      .includes(:product)
+      .joins(:product)
+      .where(deleted: false)
+      .where(products: { deleted: false })
 
     if params[:q].present?
       q = "%#{params[:q]}%"
@@ -55,21 +59,24 @@ class Admin::Api::InventoriesController < ApplicationController
   end
 
   def bulk_update
-    updates = params.require(:updates)
-    raise ActionController::BadRequest, "updates must be an array" unless updates.is_a?(Array)
-
+    variants = params.require(:variants)
+    raise ActionController::BadRequest, "variants must be an array" unless variants.is_a?(Array)
 
     updated_count = 0
 
     ProductVariant.transaction do
-      updates.each do |row|
-        id = row.fetch(:id)
-        stock = row.fetch(:stock)
+      variants.each do |row|
+        # row は HashWithIndifferentAccess にならないケースがあるので両対応
+        id_raw    = row[:id]    || row["id"]
+        stock_raw = row[:stock] || row["stock"]
 
-        stock_i = Integer(stock)
+        raise ActionController::BadRequest, "id is required" if id_raw.blank?
+        raise ActionController::BadRequest, "stock is required" if stock_raw.nil?
+
+        stock_i = Integer(stock_raw)
         raise ActiveRecord::RecordInvalid.new(ProductVariant.new), "stock must be >= 0" if stock_i < 0
 
-        variant = ProductVariant.find(id)
+        variant = ProductVariant.where(deleted: false).find(id_raw)
         variant.update!(stock: stock_i)
         updated_count += 1
       end

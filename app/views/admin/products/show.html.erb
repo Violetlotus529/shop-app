@@ -1,33 +1,46 @@
-<h1>Product detail</h1>
+<div class="a-page">
+  <div class="a-head">
+    <h1 class="a-title">商品詳細</h1>
 
-<table>
-  <tr>
-    <th>ID</th>
-    <td><%= @product.id %></td>
-  </tr>
-  <tr>
-    <th>Name</th>
-    <td><%= @product.name %></td>
-  </tr>
-  <tr>
-    <th>Description</th>
-    <td><%= @product.description %></td>
-  </tr>
-  <tr>
-    <th>Category</th>
-    <td><%= @product.category %></td>
-  </tr>
-  <tr>
-    <th>Price</th>
-    <td><%= @product.price_cents %></td>
-  </tr>
-  <tr>
-    <th>Published</th>
-    <td><%= @product.published? %></td>
-  </tr>
-</table>
+    <div class="a-actions">
+      <%= link_to "編集", edit_admin_product_path(@product), class: "a-btn a-btn--primary" %>
+      <%= link_to "一覧へ戻る", admin_products_path, class: "a-btn" %>
+    </div>
+  </div>
 
-<div style="margin-top: 16px;">
-  <%= link_to "Edit", edit_admin_product_path(@product) %> |
-  <%= link_to "Back to list", admin_products_path %>
+  <div class="a-grid">
+    <div class="a-card">
+      <h2 class="a-subtitle">商品情報</h2>
+
+      <dl class="a-kv">
+        <dt>ID</dt><dd><%= @product.id %></dd>
+        <dt>商品名</dt><dd><%= @product.name %></dd>
+        <dt>カテゴリ</dt><dd><%= @product.category %></dd>
+        <dt>価格</dt><dd>¥<%= number_with_delimiter(@product.price_cents) %></dd>
+        <dt>公開状態</dt>
+        <dd>
+          <span class="a-pill <%= @product.published? ? "a-pill--on" : "a-pill--off" %>">
+            <%= @product.published? ? "公開" : "非公開" %>
+          </span>
+        </dd>
+      </dl>
+
+      <div class="a-help">tax included</div>
+    </div>
+
+    <div class="a-card">
+      <h2 class="a-subtitle">説明</h2>
+      <div style="white-space: pre-wrap;"><%= @product.description.presence || "（なし）" %></div>
+    </div>
+
+    <div class="a-card">
+      <h2 class="a-subtitle">画像</h2>
+
+      <% if @product.main_image.attached? %>
+        <%= image_tag @product.main_image, class: "a-image" %>
+      <% else %>
+        <div class="a-help">画像は未登録です。</div>
+      <% end %>
+    </div>
+  </div>
 </div>

@@ -13,16 +13,43 @@
       </tr>
     </thead>
 
-    <tbody>
-      <% @orders.each do |order| %>
-        <tr>
-          <td><%= l(order.created_at, format: :short) %></td>
-          <td><%= order.id %></td>
-          <td><%= number_to_currency(order.total_cents, unit: "¥", precision: 0) %></td>
-          <td><%= order.status_label %></td>
-          <td><%= link_to "詳細", order_path(order) %></td>
-        </tr>
-      <% end %>
-    </tbody>
-  </table>
+    <tbody><section class="section">
+  <h1 class="h1">注文履歴</h1>
+
+  <% if @orders.blank? %>
+    <div class="notice">注文履歴はありません。</div>
+    <div class="stack-12" style="max-width:320px;">
+      <%= link_to "商品一覧へ", products_path, class: "btn btn--primary btn--block" %>
+    </div>
+  <% else %>
+    <div class="stack-24">
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>注文日時</th>
+              <th>注文ID</th>
+              <th>合計</th>
+              <th>ステータス</th>
+              <th></th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <% @orders.each do |order| %>
+              <tr>
+                <td><%= l(order.created_at, format: :short) %></td>
+                <td><%= order.id %></td>
+                <td><%= number_to_currency(order.total_cents, unit: "¥", precision: 0) %></td>
+                <td><%= order.status_label %></td>
+                <td><%= link_to "詳細", order_path(order), class: "link" %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="text-sm text-muted">tax included</div>
+    </div>
+  <% end %>
 <% end %>

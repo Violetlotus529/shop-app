@@ -1,3 +1,4 @@
+<!-- app/views/layouts/application.html.erb -->
 <!DOCTYPE html>
 <html>
   <head>
@@ -7,19 +8,63 @@
     <%= csp_meta_tag %>
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
-  </head> 
+  </head>
 
   <body>
-    <header>
-      <div class="header-actions">
-        <% if customer_signed_in? %>
-          <%= link_to "MyPage", my_page_path, class: "header-link" %>
-          <%= link_to "Orders", orders_path, class: "header-link" %>
-          <%= button_to "Logout", destroy_customer_session_path, method: :delete, class: "header-link" %>
-        <% else %>
-          <%= link_to "Login", new_customer_session_path, class: "header-link" %>
-        <% end %>
-      <div>
+    <header class="l-header">
+      <div class="l-header__brandRow">
+        <div class="l-header__inner">
+          <%= link_to "VIOLETLOTUS", root_path, class: "l-brand" %>
+        </div>
+      </div>
+
+      <div class="l-header__navRow">
+        <div class="l-header__inner l-header__inner--nav">
+          <div class="l-header__left">
+            <%= yield :header_back if content_for?(:header_back) %>
+          </div>
+
+          <nav class="l-nav">
+            <% if current_page?(cart_path) %>
+              <span class="nav-link is-current">Cart</span>
+            <% else %>
+              <%= link_to "Cart", cart_path, class: "nav-link" %>
+            <% end %>
+
+            <% if customer_signed_in? %>
+              <% if current_page?(my_page_path) %>
+                <span class="nav-link is-current">MyPage</span>
+              <% else %>
+                <%= link_to "MyPage", my_page_path, class: "nav-link" %>
+              <% end %>
+
+              <% if current_page?(orders_path) %>
+                <span class="nav-link is-current">Orders</span>
+              <% else %>
+                <%= link_to "Orders", orders_path, class: "nav-link" %>
+              <% end %>
+
+              <%= button_to "Logout",
+                    destroy_customer_session_path,
+                    method: :delete,
+                    class: "btn-linklike",
+                    form_class: "l-nav__logout" %>
+            <% else %>
+              <% if current_page?(new_customer_session_path) %>
+                <span class="nav-link is-current">Login</span>
+              <% else %>
+                <%= link_to "Login", new_customer_session_path, class: "nav-link" %>
+              <% end %>
+
+              <% if current_page?(new_guest_order_lookup_path) %>
+                <span class="nav-link is-current">Guest Lookup</span>
+              <% else %>
+                <%= link_to "Guest Lookup", new_guest_order_lookup_path, class: "nav-link" %>
+              <% end %>
+            <% end %>
+          </nav>
+        </div>
+      </div>
     </header>
 
     <%= render "shared/flash" %>

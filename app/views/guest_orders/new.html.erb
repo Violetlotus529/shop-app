@@ -1,0 +1,26 @@
+<section class="section">
+  <h1 class="h1">ゲスト注文照会</h1>
+
+  <div class="stack-24">
+    <div class="text-sm text-muted" style="max-width: 720px;">
+      購入時に入力した Email と、ゲスト注文番号を入力してください。
+    </div>
+
+    <%= form_with url: guest_order_lookup_path, method: :post, local: true, class: "form" do %>
+      <div class="form__row">
+        <label class="form__label" for="email">Email</label>
+        <input id="email" class="form__input" name="email" autocomplete="email" required>
+      </div>
+
+      <div class="form__row">
+        <label class="form__label" for="guest_order_number">ゲスト注文番号</label>
+        <input id="guest_order_number" class="form__input" name="guest_order_number" required>
+      </div>
+
+      <div class="stack-12" style="max-width: 420px;">
+        <button type="submit" class="btn btn--primary btn--block">照会する</button>
+        <%= link_to "商品一覧へ", products_path, class: "btn btn--secondary btn--block" %>
+      </div>
+    <% end %>
+  </div>
+</section>

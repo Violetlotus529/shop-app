@@ -1,11 +1,12 @@
-<% if flash[:notice].present? %>
-  <div class="flash flash--notice">
-    <%= flash[:notice] %>
-  </div>
-<% end %>
+<!-- app/views/shared/_flash.html.erb -->
+<% if flash[:notice].present? || flash[:alert].present? %>
+  <div class="flash">
+    <% if flash[:notice].present? %>
+      <div class="flash__box flash__box--notice"><%= flash[:notice] %></div>
+    <% end %>
 
-<% if flash[:alert].present? %>
-  <div class="flash flash--alert">
-    <%= flash[:alert] %>
+    <% if flash[:alert].present? %>
+      <div class="flash__box flash__box--alert"><%= flash[:alert] %></div>
+    <% end %>
   </div>
 <% end %>

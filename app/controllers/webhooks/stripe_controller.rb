@@ -1,5 +1,4 @@
-class Webhooks::StripeController < ApplicationController
-  skip_before_action :verify_authenticity_token
+class Webhooks::StripeController < ActionController::API
 
   def create
     payload = request.raw_post
@@ -12,7 +11,6 @@ class Webhooks::StripeController < ApplicationController
     se.event_type = event.type
     se.last_attempted_at = Time.current
 
-    # 既に処理済みならログだけ残してOK返す
     if se.processed_at.present?
       se.save! if se.changed?
       head :ok
@@ -23,7 +21,7 @@ class Webhooks::StripeController < ApplicationController
 
     case event.type
     when "checkout.session.completed"
-      handle_checkout_completed(event.data.object, se)  # ★seを渡す
+      handle_checkout_completed(event.data.object, se)
     end
 
     head :ok
@@ -47,7 +45,7 @@ class Webhooks::StripeController < ApplicationController
 
   private
 
-  def handle_checkout_completed(session_obj, se)  # ★seを受け取る
+  def handle_checkout_completed(session_obj, se)
     order_id = session_obj.metadata&.[]("order_id")
     return if order_id.blank?
 

@@ -1242,3 +1242,129 @@ order取得 + lock
 その他エラー → failed
   ↓
 StripeEventに processed 記録
+
+- email = params[:email].to_s.strip.downcaseとは？
+・to_s nilが来ても""にする。未入力でもエラーにしない
+・strip 前後の空白を除去
+・downcase 大文字を小文字に統一
+[DBに保存されているcustomer_emailと厳密一致で比較する]
+
+「JS」
+
+- const / let とは？
+const 再代入不可(変数)
+変数の参照先は固定、ただし中身の状態は変更可能
+
+let 再代入する変数
+
+- function とは？
+まとまり処理に名前をつけるもの
+function f(a) { ... } 通常の関数
+const f = () => { ... } アロー関数(短く書ける)
+
+- renderRows とは？
+描画する。 「APIデータ -> DOMに反映」系でよく使う
+
+- addEventListener とは？
+イベントが起きたら実行 "click","input","submit",など
+
+- querySelector / querySelectorAll とは？
+CSSセレクタで要素をとる 1個 / 複数
+
+- dateset とは？
+date-xxx="..."を読む/書くための仕組み
+date-original-stock ->input.dateset.originalStock
+
+- async / await とは？
+非同期（API通信）を「順番に書ける」ようにする構文
+
+- fetch とは？
+HTTPリクエスト。
+fetch(url) = GET
+fetch(url, {method, headers, body }) = POST/PUT等
+
+- JSON.stringify / res.json() とは？
+・JSON.stringify(obj)
+JSオブジェクト -> JSON文字列 (送る用)
+・res.json()
+レスポンスJSON文字列 -> JSオブジェクト (受ける側)
+
+- turbo:load とは？
+Turbo遷移でも毎回実行できる
+
+- () => { ... } とは？
+アロー関数。イベント発火時にこの中身...を実行する
+
+- try/catch とは？
+例外が出ても落ちずにログを出すためのもの(原因追跡用)
+
+- function setEditing(on)とは？
+編集モードをON/OFFする関数
+
+- forEach とは？
+それぞれに同じ処理をする（ループ）
+
+- input.disabled = !on とは？
+on=true なら disabled=false（編集可能）
+on=false なら disabled=true（編集不可）
+
+- document とは？
+そのページのDOM全体の「入り口オブジェクト」起点
+
+- getElementById(...) とは？
+id(...)でDOM要素を１つ取得する関数。
+あれば取得、なければnull
+
+- disabled とは？
+入力を無効化する属性（編集できなくする）
+<input type="number" disabled> HTML
+JSで切り替え
+input.disabled = true 編集不可
+input.disables = false 編集可能
+
+- ${v.stock} とは？
+文字列の中に変数を埋め込む構文
+
+- date-original-stock とは？
+初期値（保存前の値）
+
+- setEditing とは？
+編集状態を再適用
+
+- Number(...)
+文字列を数値に変換（APIに数値で送りたい）
+
+- dirty とは？
+変更があるか
+
+- confirm とは？
+確認ダイアログ（ブラウザ標準）
+
+- tbody.innerHTML = ""
+tbodyの中身のHTMLを空にする
+
+- function confirmDiscardIFDirty() { ... }
+未保存の変更があるなら、破棄していいか確認する
+
+- editToggle とは？
+const editToggle = document.getElementById("inventory-edit-toggle")
+編集モードのDOM
+
+- 
+
+- return true とは？
+
+
+- paginationEl とは？
+ページ送り（Prev/Next）ボタンを表示する場所の DOM
+ページ情報をここに描写する
+
+- 分割代入
+const { current_page, total_pages } = pagination
+ ↓
+const current_page = pagination.current_page
+const total_pages = pagination.total_pages
+
+- return true とは？
+なければtrueを返す（処理終了）
+あれば続行（下へ続く）

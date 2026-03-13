@@ -1,55 +1,83 @@
-<h1>注文詳細</h1>
+<div class="a-page">
+  <div class="a-head">
+    <h1 class="a-title">Order #<%= @order.id %></h1>
 
-<p>注文ID: <%= @order.id %></p>
-<P>ステータス: <strong><%= @order.status %></strong></p>
-<p>合計: <%= number_to_currency(@order.total_cents, unit: "¥", precision: 0) %></p>
-<P>作成日時: <%= l(@order.created_at) %></p>
-<p>支払日時: <%= @order.paid_at ? l(@order.paid_at) : "-" %></p>
+    <div class="a-actions">
+      <span class="a-badge a-badge--<%= @order.status %>">
+        <%= @order.status_label %>
+      </span>
+      <% status_labels = {
+        "paid" => "支払い完了",
+        "processing" => "発送準備中",
+        "shipped" => "発送済み",
+        "completed" => "完了",
+        "canceled" => "キャンセル",
+        "failed" => "決済失敗",
+        "refunded" => "返金済み"
+      } %>
 
-<hr>
-
-<h2>配送先</h2>
-<p><%= @order.customer_name %> (<%= @order.customer_email %>) </p>
-<p>〒<%= @order.postal_code %></p>
-<p><%= @order.prefecture %><%= @order.city %> <%= @order.address_line1 %></p>
-<p><%= @order.address_line2 %></p>
-
-<hr>
-
-<h2>商品</h2>
-<% primary_product = @order.admin_primary_product %>
-<% if primary_product&.respond_to?(:main_image) && primary_product.main_image.attached? %>
-  <%= image_tag primary_product.main_image,
-        width: 157.12,
-        height: 180,
-        style: "object-fit:cover; display:block;" %>
-<% end %>
-<% @order.order_items.each do |item| %>
-  <% v = item.product_variant %>
-  <div>
-    <strong><%= v.product.name %></strong>
-    (<%= v.color %>/<%= v.size %>)
-    数量: <%= item.quantity %>
-    単価: <%= number_to_currency(item.unit_price_cents, unit: "¥", precision: 0) %>
-    小計: <%= number_to_currency(item.subtotal_cents, unit: "¥", precision: 0) %>
-  </div>
-  <hr>
-<% end %>
-
-<h2>ステータス更新</h2>
-<% candidates = @order.next_status_candidates %>
-
-<% if candidates.empty? %>
-  <p>更新可能なステータスはありません。</p>
-<% else %>
-  <%= form_with url: status_admin_order_path(@order), method: :patch, local: true do %>
-    <select name="status">
-      <% candidates.each do |s| %>
-        <option value="<%= s %>"><%= s %></option>
+      <% @order.next_status_candidates.each do |st| %>
+        <%= button_to status_labels[st] || st, status_admin_order_path(@order, status: st),
+              method: :patch,
+              class: "a-btn a-btn--primary" %>
       <% end %>
-    </select>
-    <button type="submit">更新</button>
-  <% end %>
-<% end %>
+    </div>
+  </div>
 
-<p><%= link_to "一覧へ戻る", admin_orders_path %></p>
+  <div class="a-grid">
+    <!-- 左 -->
+    <div class="a-card">
+      <h2 class="a-subtitle">注文情報</h2>
+
+      <dl class="a-kv">
+        <dt>ID</dt><dd><%= @order.id %></dd>
+        <dt>作成日時</dt><dd><%= l @order.created_at %></dd>
+        <dt>支払い</dt><dd>credit</dd>
+        <dt>合計</dt><dd>¥<%= @order.total_cents %></dd>
+      </dl>
+    </div>
+
+    <!-- 中央 -->
+    <div class="a-card">
+      <h2 class="a-subtitle">購入商品</h2>
+
+      <table class="a-table">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Variant</th>
+            <th>Qty</th>
+            <th>Price</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @order.order_items.each do |oi| %>
+            <tr>
+              <td><%= oi.product_variant.product.name %></td>
+              <td><%= oi.product_variant.color %> / <%= oi.product_variant.size %></td>
+              <td><%= oi.quantity %></td>
+              <td>¥<%= oi.subtotal_cents %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 右 -->
+    <div class="a-card">
+      <h2 class="a-subtitle">配送・顧客</h2>
+
+      <dl class="a-kv">
+        <dt>名前</dt><dd><%= @order.customer_name %></dd>
+        <dt>Email</dt><dd><%= @order.customer_email %></dd>
+        <dt>住所</dt>
+        <dd>
+          <%= @order.postal_code %><br>
+          <%= @order.prefecture %> <%= @order.city %><br>
+          <%= @order.address_line1 %><br>
+          <%= @order.address_line2 %>
+        </dd>
+      </dl>
+    </div>
+  </div>
+</div>

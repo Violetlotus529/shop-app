@@ -17,18 +17,23 @@ class Order < ApplicationRecord
     refunded: 7
   }
 
+  STATUS_LABELS = {
+    "pending"    => "支払い待ち",
+    "paid"       => "支払い完了",
+    "processing" => "発送準備中",
+    "shipped"    => "発送済み",
+    "completed"  => "完了",
+    "canceled"   => "キャンセル",
+    "failed"     => "決済失敗",
+    "refunded"   => "返金済み"
+  }.freeze
+
   def refunded?
     status == "refunded"
   end
 
   def status_label
-    case status
-    when "pending"  then "支払い待ち"
-    when "paid"     then "支払い済み"
-    when "failed"   then "失敗"
-    when "refunded" then "返金済み"
-    else status
-    end
+    STATUS_LABELS.fetch(status) { status }
   end
 
   scope :search_q, ->(q) {
@@ -71,13 +76,14 @@ class Order < ApplicationRecord
     return false unless self.class.statuses.key?(next_status)
 
     allowed = {
-      "pending"    => %w[paid failed],
+      "pending"    => %w[failed],
       "paid"       => %w[processing canceled],
       "processing" => %w[shipped canceled],
       "shipped"    => %w[completed],
       "completed"  => %w[],
       "canceled"   => %w[],
-      "failed"     => %w[]
+      "failed"     => %w[],
+      "refunded"   => %w[]
     }
 
     allowed.fetch(status, []).include?(next_status)
@@ -96,6 +102,7 @@ class Order < ApplicationRecord
       created_at: created_at,
       order_number: (respond_to?(:order_number) ? order_number : nil),
       status: status,
+      status_label: status_label,
       payment_method: "credit",
       customer_name: customer_name,
       customer_email: customer_email,

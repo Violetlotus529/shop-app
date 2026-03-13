@@ -10,13 +10,19 @@ class OrdersController < ApplicationController
   end
   
   def show
-    @order = 
-      if customer_signed_in?
-        current_customer.orders.includes(order_items: { product_variant: :product }).find(params[:id])
-      else
-        guest_ids = Array(session[:guest_order_ids]).map(&:to_i)
-        raise ActiveRecord::RecordNotFound unless guest_ids.include?(@order.id)
-      end
+    if customer_signed_in?
+      @order = current_customer
+        .orders
+        .includes(order_items: { product_variant: :product })
+        .find(params[:id])
+    else
+      @order = Order
+        .includes(order_items: { product_variant: :product })
+        .find(params[:id])
+
+      guest_ids = Array(session[:guest_order_ids]).map(&:to_i)
+      raise ActiveRecord::RecordNotFound unless guest_ids.include?(@order.id)
+    end
 
     @paid_param = params[:paid].present?
 

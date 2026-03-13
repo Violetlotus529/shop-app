@@ -1,0 +1,135 @@
+<div class="a-page">
+  <div class="a-head">
+    <h1 class="a-title"><%= title %></h1>
+
+    <div class="a-actions">
+      <%= link_to "戻る", back_path, class: "a-btn" %>
+    </div>
+  </div>
+
+  <%= render "shared/form_errors", object: product %>
+
+  <%= form_with model: [:admin, product], local: true do |f| %>
+
+    <!-- 基本情報 -->
+    <div class="a-card">
+      <h2 class="a-subtitle">基本情報</h2>
+
+      <div class="a-formGrid">
+        <div class="a-field">
+          <%= f.label :name, "商品名", class: "a-label" %>
+          <%= f.text_field :name, class: "a-input" %>
+        </div>
+
+        <div class="a-field">
+          <%= f.label :category, "カテゴリ", class: "a-label" %>
+          <%= f.select :category, Product::CATEGORIES.map { |c| [c, c] }, {}, class: "a-select" %>
+        </div>
+
+        <div class="a-field">
+          <%= f.label :price_cents, "価格（円）", class: "a-label" %>
+          <%= f.number_field :price_cents, class: "a-input", min: 0, step: 1 %>
+          <div class="a-help">tax included</div>
+        </div>
+
+        <div class="a-field">
+          <label class="a-label">公開</label>
+          <label class="a-toggle" style="justify-content:flex-start;">
+            <%= f.check_box :published %>
+            <span>公開する</span>
+          </label>
+        </div>
+
+        <div class="a-field a-field--full">
+          <%= f.label :description, "説明", class: "a-label" %>
+          <%= f.text_area :description, class: "a-textarea", rows: 6 %>
+        </div>
+      </div>
+    </div>
+
+    <!-- メイン画像 -->
+    <div class="a-card">
+      <h2 class="a-subtitle">メイン画像</h2>
+
+      <% if product.main_image.attached? %>
+        <div class="a-imageRow">
+          <%= image_tag product.main_image, class: "a-image" %>
+
+          <div class="a-imageActions">
+            <%= link_to "画像を削除",
+              purge_main_image_admin_product_path(product),
+              data: { turbo_method: :delete, turbo_confirm: "画像を削除しますか？" },
+              class: "a-btn a-btn--danger" %>
+          </div>
+        </div>
+      <% else %>
+        <div class="a-help">画像は未登録です。</div>
+      <% end %>
+
+      <div class="a-field" style="margin-top:12px;">
+        <%= f.label :main_image, "画像をアップロード", class: "a-label" %>
+        <%= f.file_field :main_image, class: "a-input", accept: "image/*" %>
+      </div>
+    </div>
+
+    <!-- バリアント -->
+    <div class="a-card a-card--table">
+      <div class="a-head" style="margin-bottom:10px;">
+        <h2 class="a-subtitle" style="margin:0;">バリアント</h2>
+        <div class="a-help" style="margin:0;">常に空行1つ表示（追加JSは後回し）</div>
+      </div>
+
+      <div class="a-tableWrap">
+        <table class="a-table">
+          <thead>
+            <tr>
+              <th>COLOR</th>
+              <th>SIZE</th>
+              <th>SKU</th>
+              <th class="a-th--right">削除</th>
+            </tr>
+          </thead>
+          <tbody>
+            <%= f.fields_for :product_variants do |vf| %>
+              <tr>
+                <td><%= vf.text_field :color, class: "a-input" %></td>
+                <td><%= vf.text_field :size,  class: "a-input" %></td>
+                <td><%= vf.text_field :sku,   class: "a-input" %></td>
+                <td>
+                  <%= vf.hidden_field :id %>
+                  <label class="a-toggle" style="justify-content:flex-end;">
+                    <%= vf.check_box :deleted %>
+                    <span>削除</span>
+                  </label>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="a-help">※ 削除は論理削除（deleted=true）</div>
+    </div>
+
+    <!-- 保存 -->
+    <div class="a-card">
+      <div class="a-actions" style="justify-content:flex-end;">
+        <%= f.submit "保存", class: "a-btn a-btn--primary" %>
+      </div>
+    </div>
+
+  <% end %>
+
+  <% if product.persisted? %>
+    <div class="a-card">
+      <div class="a-actions" style="justify-content:flex-end;">
+        <%= button_to "商品を削除（ゴミ箱へ）",
+              deleted_admin_product_path(product),
+              method: :patch,
+              params: { deleted: true },
+              data: { turbo_confirm: "商品を削除（ゴミ箱へ移動）しますか？" },
+              class: "a-btn a-btn--danger" %>
+      </div>
+    </div>
+  <% end %>
+</div>

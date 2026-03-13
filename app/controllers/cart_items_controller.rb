@@ -1,5 +1,4 @@
 class CartItemsController < ApplicationController
-# app/controllers/cart_items_controller.rb
   def create
     variant = ProductVariant
       .joins(:product)
@@ -47,15 +46,30 @@ class CartItemsController < ApplicationController
   end
 
   def update
-    qty = Integer(params[:quantity])
-    qty = 1 if qty < 1
+    raw = params[:quantity]
+    qty = Integer(raw)
+
+    if qty <= 0
+      destroy and return
+    end
 
     if customer_signed_in?
       item = current_customer.cart_items.find(params[:id])
-      v = item.product_variant
+      
+      v = ProductVariant
+        .joins(:product)
+        .where(product: { published: true, deleted: false })
+        .where(product_variants: { deleted: false })
+        .find(item.product_variant_id)
+
+      if v.stock <= 0
+        item.destroy!
+        redirect_to cart_path, alert: "在庫切れのため削除しました"
+        return
+      end
 
       if qty > v.stock
-        redirect_to cart_path, alert: "在庫数を超えています (在庫: #{v.stock}) "
+        redirect_to cart_path, alert: "在庫数を超えています (在庫: #{v.stock} / 要求: #{qty}) "
         return
       end
 
@@ -71,8 +85,14 @@ class CartItemsController < ApplicationController
         .where(product_variants: { deleted: false })
         .find(key)
 
+      if v.stock <= 0
+        cart.delete(key)
+        redirect_to cart_path, alert: "在庫切れのため削除しました"
+        return
+      end
+
       if qty > v.stock
-        redirect_to cart_path, alert: "在庫数を超えています (在庫: #{v.stock}) "
+        redirect_to cart_path, alert: "在庫数を超えています (在庫: #{v.stock} / 要求: #{qty}) "
         return
       end
 
@@ -87,15 +107,11 @@ class CartItemsController < ApplicationController
 
   def destroy
     if customer_signed_in?
-      item = current_customer.cart_items.find(params[:id])
-      item.destroy!
+      current_customer.cart_items.find(params[:id]).destroy!
     else
-      cart = session[:cart] ||= {}
-      key = params[:id].to_s
-      cart.delete(key)
+      (session[:cart] ||= {}).delete(params[:id].to_s)
     end
     redirect_to cart_path, notice: "削除しました"
-  rescue ActiveRecord::RecordNotFound
-    redirect_to cart_path, alert: "対象商品が見つかりません"
+    return
   end
 end

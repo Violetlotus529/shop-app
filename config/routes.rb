@@ -20,7 +20,9 @@ Rails.application.routes.draw do
   resource :checkout, only: [:create] do
     get :canceled
   end
+
   resources :orders, only: %i[index show]
+  resource :guest_order_lookup, only: %i[new create], controller: :guest_orders
 
   namespace :admin do
     root to: "dashboard#show"
@@ -38,8 +40,9 @@ Rails.application.routes.draw do
       end
     end
 
-    resources :products do
+    resources :products, except: [:destroy] do
       patch :deleted, on: :member
+      delete :purge_main_image, on: :member
     end
 
     namespace :trash do

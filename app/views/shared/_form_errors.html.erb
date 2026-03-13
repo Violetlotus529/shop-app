@@ -1,3 +1,4 @@
+<!-- app/views/shared/_form_errors.html.erb -->
 <% if object&.errors&.any? %>
   <div class="form-errors">
     <p><%= pluralize(object.errors.count, "error") %> prohibited this from being saved:</p>
@@ -7,4 +8,4 @@
       <% end %>
     </ul>
   </div>
-<% end %> 
+<% end %>
