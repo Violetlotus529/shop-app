@@ -76,13 +76,14 @@ class Order < ApplicationRecord
     return false unless self.class.statuses.key?(next_status)
 
     allowed = {
-      "pending"    => %w[paid failed],
+      "pending"    => %w[failed],
       "paid"       => %w[processing canceled],
       "processing" => %w[shipped canceled],
       "shipped"    => %w[completed],
       "completed"  => %w[],
       "canceled"   => %w[],
-      "failed"     => %w[]
+      "failed"     => %w[],
+      "refunded"   => %w[]
     }
 
     allowed.fetch(status, []).include?(next_status)

@@ -1,52 +1,52 @@
 <section class="section">
-  <h1 class="h1">Account</h1>
+  <h1 class="h1">アカウント設定</h1>
 
   <div class="stack-24">
     <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put, class: "form" }) do |f| %>
       <%= render "customers/shared/error_messages", resource: resource %>
 
       <div class="form__row">
-        <%= f.label :email, class: "form__label" %>
+        <%= f.label :email, "Email", class: "form__label" %>
         <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "form__input" %>
       </div>
 
       <div class="form__row">
-        <%= f.label :password, class: "form__label" %>
+        <%= f.label :password, "新しいパスワード", class: "form__label" %>
         <%= f.password_field :password, autocomplete: "new-password", class: "form__input" %>
         <% if @minimum_password_length %>
-          <div class="text-sm text-muted"><%= @minimum_password_length %> characters minimum</div>
+          <div class="text-sm text-muted"><%= @minimum_password_length %>文字以上</div>
         <% end %>
-        <div class="text-sm text-muted">(leave blank if you don't want to change it)</div>
+        <div class="text-sm text-muted">変更しない場合は空欄のままにしてください。</div>
       </div>
 
       <div class="form__row">
-        <%= f.label :password_confirmation, class: "form__label" %>
+        <%= f.label :password_confirmation, "新しいパスワード（確認）", class: "form__label" %>
         <%= f.password_field :password_confirmation, autocomplete: "new-password", class: "form__input" %>
       </div>
 
       <div class="form__row">
-        <%= f.label :current_password, class: "form__label" %>
+        <%= f.label :current_password, "現在のパスワード", class: "form__label" %>
         <%= f.password_field :current_password, autocomplete: "current-password", class: "form__input" %>
-        <div class="text-sm text-muted">(required to confirm changes)</div>
+        <div class="text-sm text-muted">変更内容を反映するために必要です。</div>
       </div>
 
       <div class="stack-12" style="max-width: 320px;">
-        <%= f.submit "Update", class: "btn btn--primary btn--block" %>
+        <%= f.submit "更新する", class: "btn btn--primary btn--block" %>
       </div>
     <% end %>
 
     <div class="card stack-12" style="max-width: 720px;">
-      <div class="h2">Cancel account</div>
-      <div class="text-sm text-muted">This action cannot be undone.</div>
-      <%= button_to "Cancel my account",
+      <div class="h2">アカウント削除</div>
+      <div class="text-sm text-muted">この操作は取り消せません。</div>
+      <%= button_to "アカウントを削除する",
             registration_path(resource_name),
             method: :delete,
-            data: { confirm: "Are you sure?", turbo_confirm: "Are you sure?" },
+            data: { confirm: "本当に削除しますか？", turbo_confirm: "本当に削除しますか？" },
             class: "btn btn--danger" %>
     </div>
 
     <div class="auth-links">
-      <%= link_to "Back", root_path, class: "link" %>
+      <%= link_to "商品一覧へ戻る", root_path, class: "link" %>
     </div>
   </div>
 </section>

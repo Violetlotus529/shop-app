@@ -54,7 +54,7 @@
               <td><%= p.id %></td>
               <td>
                 <div style="font-weight:600;"><%= p.name %></div>
-                <div class="a-help" style="margin:4px 0 0;">category: <%= p.category %></div>
+                <div class="a-help" style="margin:4px 0 0;">カテゴリ: <%= p.category.presence || "-" %></div>
               </td>
               <td>
                 <span class="a-pill <%= p.published? ? "a-pill--on" : "a-pill--off" %>">

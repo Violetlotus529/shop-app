@@ -45,7 +45,9 @@
                     <div class="text-sm" style="color:#c00;">
                       在庫不足（在庫: <%= row[:available_stock] %> / 現在: <%= qty %>）
                     </div>
-                    <div class="text-sm" style="color:#c00;">数量を減らしてから決済してください。</div>
+                    <div class="text-sm" style="color:#c00;">
+                      数量を減らしてから決済してください。
+                    </div>
                   <% end %>
                 </div>
 
@@ -73,7 +75,7 @@
           <% end %>
         </div>
 
-        <aside class="cart__summary">
+        <aside class="cart__summary stack-24">
           <div class="summary-card stack-12">
             <div class="summary-card__row">
               <div class="text-sm text-muted">合計</div>
@@ -86,55 +88,20 @@
 
             <%= form_with url: checkout_path, method: :post, local: true, data: { turbo: false }, class: "stack-12" do %>
               <% unless customer_signed_in? %>
-                <div class="stack-12">
-                  <div class="h2">購入者情報（ゲスト）</div>
-
-                  <div class="form__row">
-                    <label class="form__label" for="customer_name">氏名</label>
-                    <input id="customer_name" class="form__input" name="customer_name" required>
-                  </div>
-
-                  <div class="form__row">
-                    <label class="form__label" for="customer_email">Email</label>
-                    <input id="customer_email" class="form__input" name="customer_email" required>
-                  </div>
-
-                  <div class="form__row">
-                    <label class="form__label" for="postal_code">郵便番号</label>
-                    <input
-                      id="postal_code"
-                      class="form__input"
-                      name="postal_code"
-                      inputmode="numeric"
-                      pattern="\d{3}-?\d{4}"
-                      placeholder="123-4567"
-                      required
-                    >
-                  </div>
-
-                  <div class="form__row">
-                    <label class="form__label" for="prefecture">都道府県</label>
-                    <input id="prefecture" class="form__input" name="prefecture" required>
-                  </div>
-
-                  <div class="form__row">
-                    <label class="form__label" for="city">市区町村</label>
-                    <input id="city" class="form__input" name="city" required>
-                  </div>
-
-                  <div class="form__row">
-                    <label class="form__label" for="address_line1">番地</label>
-                    <input id="address_line1" class="form__input" name="address_line1" required>
-                  </div>
-
-                  <div class="form__row">
-                    <label class="form__label" for="address_line2">建物名（任意）</label>
-                    <input id="address_line2" class="form__input" name="address_line2">
-                  </div>
-                </div>
+                <input type="hidden" name="customer_name" id="checkout_customer_name_hidden">
+                <input type="hidden" name="customer_email" id="checkout_customer_email_hidden">
+                <input type="hidden" name="postal_code" id="checkout_postal_code_hidden">
+                <input type="hidden" name="prefecture" id="checkout_prefecture_hidden">
+                <input type="hidden" name="city" id="checkout_city_hidden">
+                <input type="hidden" name="address_line1" id="checkout_address_line1_hidden">
+                <input type="hidden" name="address_line2" id="checkout_address_line2_hidden">
               <% end %>
 
-              <button type="submit" class="btn btn--primary btn--block" data-disable-with="処理中..." <%= "disabled" unless can_checkout %>>
+              <button
+                type="submit"
+                class="btn btn--primary btn--block"
+                data-disable-with="処理中..."
+                <%= "disabled" unless can_checkout %>>
                 決済へ進む
               </button>
 
@@ -145,6 +112,91 @@
               <% end %>
             <% end %>
           </div>
+
+          <% unless customer_signed_in? %>
+            <div class="card stack-12">
+              <div class="h2">購入者情報（ゲスト）</div>
+
+              <div class="form__row">
+                <label class="form__label" for="customer_name">氏名</label>
+                <input
+                  id="customer_name"
+                  class="form__input js-checkout-copy"
+                  data-target="#checkout_customer_name_hidden"
+                  name="guest_customer_name"
+                  required
+                >
+              </div>
+
+              <div class="form__row">
+                <label class="form__label" for="customer_email">Email</label>
+                <input
+                  id="customer_email"
+                  class="form__input js-checkout-copy"
+                  data-target="#checkout_customer_email_hidden"
+                  name="guest_customer_email"
+                  required
+                >
+              </div>
+
+              <div class="form__row">
+                <label class="form__label" for="postal_code">郵便番号</label>
+                <input
+                  id="postal_code"
+                  class="form__input js-checkout-copy"
+                  data-target="#checkout_postal_code_hidden"
+                  name="guest_postal_code"
+                  inputmode="numeric"
+                  pattern="\d{3}-?\d{4}"
+                  placeholder="123-4567"
+                  required
+                >
+              </div>
+
+              <div class="form__row">
+                <label class="form__label" for="prefecture">都道府県</label>
+                <input
+                  id="prefecture"
+                  class="form__input js-checkout-copy"
+                  data-target="#checkout_prefecture_hidden"
+                  name="guest_prefecture"
+                  required
+                >
+              </div>
+
+              <div class="form__row">
+                <label class="form__label" for="city">市区町村</label>
+                <input
+                  id="city"
+                  class="form__input js-checkout-copy"
+                  data-target="#checkout_city_hidden"
+                  name="guest_city"
+                  required
+                >
+              </div>
+
+              <div class="form__row">
+                <label class="form__label" for="address_line1">番地</label>
+                <input
+                  id="address_line1"
+                  class="form__input js-checkout-copy"
+                  data-target="#checkout_address_line1_hidden"
+                  name="guest_address_line1"
+                  required
+                >
+              </div>
+
+              <div class="form__row">
+                <label class="form__label" for="address_line2">建物名（任意）</label>
+                <input
+                  id="address_line2"
+                  class="form__input js-checkout-copy"
+                  data-target="#checkout_address_line2_hidden"
+                  name="guest_address_line2"
+                >
+              </div>
+            </div>
+          <% end %>
         </aside>
       </div>
     <% else %>
@@ -155,3 +207,19 @@
     <% end %>
   </div>
 </section>
+
+<% unless customer_signed_in? %>
+  <script>
+    document.addEventListener("turbo:load", function () {
+      document.querySelectorAll(".js-checkout-copy").forEach(function (input) {
+        const sync = function () {
+          const hidden = document.querySelector(input.dataset.target);
+          if (hidden) hidden.value = input.value;
+        };
+
+        input.addEventListener("input", sync);
+        sync();
+      });
+    });
+  </script>
+<% end %>

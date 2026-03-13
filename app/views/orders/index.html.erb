@@ -52,16 +52,4 @@
       <div class="text-sm text-muted">tax included</div>
     </div>
   <% end %>
-</section>
-      <% @orders.each do |order| %>
-        <tr>
-          <td><%= l(order.created_at, format: :short) %></td>
-          <td><%= order.id %></td>
-          <td><%= number_to_currency(order.total_cents, unit: "¥", precision: 0) %></td>
-          <td><%= order.status_label %></td>
-          <td><%= link_to "詳細", order_path(order) %></td>
-        </tr>
-      <% end %>
-    </tbody>
-  </table>
 <% end %>

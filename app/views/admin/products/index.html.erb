@@ -76,13 +76,10 @@
               </td>
 
               <td>
-                <% if product.published? %>
-                  <span class="a-badge a-badge--completed">公開</span>
-                <% else %>
-                  <span class="a-badge a-badge--canceled">非公開</span>
-                <% end %>
+                <span class="a-pill <%= product.published? ? "a-pill--on" : "a-pill--off" %>">
+                  <%= product.published? ? "公開" : "非公開" %>
+                </span>
               </td>
-
               <td>
                 <%= l(product.updated_at) %>
               </td>

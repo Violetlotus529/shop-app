@@ -6,9 +6,18 @@
       <span class="a-badge a-badge--<%= @order.status %>">
         <%= @order.status_label %>
       </span>
+      <% status_labels = {
+        "paid" => "支払い完了",
+        "processing" => "発送準備中",
+        "shipped" => "発送済み",
+        "completed" => "完了",
+        "canceled" => "キャンセル",
+        "failed" => "決済失敗",
+        "refunded" => "返金済み"
+      } %>
 
       <% @order.next_status_candidates.each do |st| %>
-        <%= button_to st, status_admin_order_path(@order, status: st),
+        <%= button_to status_labels[st] || st, status_admin_order_path(@order, status: st),
               method: :patch,
               class: "a-btn a-btn--primary" %>
       <% end %>

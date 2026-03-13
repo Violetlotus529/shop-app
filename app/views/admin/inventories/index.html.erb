@@ -24,19 +24,19 @@
       <div class="a-field">
         <label class="a-label">在庫</label>
         <select class="a-select" name="stock_state">
-          <option value="">all</option>
-          <option value="in_stock"     <%= "selected" if params[:stock_state] == "in_stock" %>>in_stock</option>
-          <option value="out_of_stock" <%= "selected" if params[:stock_state] == "out_of_stock" %>>out_of_stock</option>
-          <option value="low"          <%= "selected" if params[:stock_state] == "low" %>>low (1-4)</option>
+          <option value="">全て</option>
+          <option value="in_stock" <%= "selected" if params[:stock_state] == "in_stock" %>>在庫あり</option>
+          <option value="out_of_stock" <%= "selected" if params[:stock_state] == "out_of_stock" %>>在庫切れ</option>
+          <option value="low" <%= "selected" if params[:stock_state] == "low" %>>残り僅か（1〜4）</option>
         </select>
       </div>
 
       <div class="a-field">
         <label class="a-label">並び替え</label>
         <select class="a-select" name="sort">
-          <option value="updated_at_desc" <%= "selected" if @sort == "updated_at_desc" %>>updated_at_desc</option>
-          <option value="stock_asc"       <%= "selected" if @sort == "stock_asc" %>>stock_asc</option>
-          <option value="stock_desc"      <%= "selected" if @sort == "stock_desc" %>>stock_desc</option>
+          <option value="updated_at_desc" <%= "selected" if @sort == "updated_at_desc" %>>更新順</option>
+          <option value="stock_asc" <%= "selected" if @sort == "stock_asc" %>>在庫数が少ない順</option>
+          <option value="stock_desc" <%= "selected" if @sort == "stock_desc" %>>在庫数が多い順</option>
         </select>
       </div>
 

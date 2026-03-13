@@ -24,7 +24,7 @@
           <tbody>
             <% @pending_rows.each do |r| %>
               <tr>
-                <td><%= l(r[:created_at]) %></td>
+                <td><%= r[:created_at].strftime("%Y/%m/%d %H:%M") %></td>
                 <td><%= r[:order_number] || r[:id] %></td>
                 <td><%= r[:payment_method] %></td>
                 <td>
@@ -43,7 +43,7 @@
       </div>
 
       <div class="a-dashboardFooter">
-        <%= link_to "一覧へ", admin_orders_path(status: "pending"), class: "a-btn a-btn--primary a-btn--sm" %>
+        <%= link_to "注文管理へ", admin_orders_path(status: "pending"), class: "a-btn a-btn--primary a-btn--sm" %>
       </div>
     </section>
 
@@ -86,7 +86,7 @@
       </div>
 
       <div class="a-dashboardFooter">
-        <%= link_to "一覧へ",
+        <%= link_to "注文管理へ",
               admin_orders_path(from: Date.current.to_s, to: Date.current.to_s),
               class: "a-btn a-btn--primary a-btn--sm" %>
       </div>
@@ -127,7 +127,7 @@
       </div>
 
       <div class="a-dashboardFooter">
-        <%= link_to "一覧へ",
+        <%= link_to "在庫管理へ",
               admin_inventories_path(stock_state: "out_of_stock"),
               class: "a-btn a-btn--primary a-btn--sm" %>
       </div>

@@ -116,46 +116,6 @@
   </div>
 </section>
 
-<div>
-  <strong>注文ID:</strong>
-  <%= @order.id %>
-</div>
-
-<div>
-  <strong>ステータス:</strong>
-  <%= @order.status %>
-</div>
-
-<div>
-  <strong>合計:</strong>
-  <%= number_to_currency(@order.total_cents, unit: "¥", precision: 0) %>
-</div>
-
-<hr>
-
-<h2>Items</h2>
-
-<% @order.order_items.each do |item| %>
-  <% v = item.product_variant %>
-  <div style="margin-bottom: 12px;">
-    <div>
-      <strong><%= v.product.name %></strong>
-      (<%= v.color %>/<%= v.size %>)
-    </div>
-
-    <div>
-      数量: <%= item.quantity %>
-    </div>
-
-    <div>
-      単価: <%= number_to_currency(item.unit_price_cents, unit: "¥", precision: 0) %>
-      / 小計: <%= number_to_currency(item.subtotal_cents, unit: "¥", precision: 0) %>
-    </div>
-  </div>
-<% end %>
-
-<hr>
-
 <% if !customer_signed_in? && @paid_param %>
   <%= link_to "カートへ戻る", cart_path %>
 <% end %>

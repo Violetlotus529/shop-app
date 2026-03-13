@@ -1,9 +1,18 @@
 <nav class="admin-nav">
-  <%= link_to "ダッシュボード", admin_root_path, class: "header-link" %>
-  <%= link_to "商品管理", admin_products_path, class: "header-link" %>
-  <%= link_to "注文管理", admin_orders_path, class: "header-link" %>
-  <%= link_to "在庫管理", admin_inventories_path, class: "header-link" %>
-  <%= link_to "ゴミ箱", admin_trash_products_path, class: "header-link" %>
+  <%= link_to "ダッシュボード", admin_root_path,
+        class: "header-link #{'is-current' if current_page?(admin_root_path)}" %>
+
+  <%= link_to "商品管理", admin_products_path,
+        class: "header-link #{'is-current' if request.path.start_with?('/admin/products') && !request.path.start_with?('/admin/trash/products')}" %>
+
+  <%= link_to "注文管理", admin_orders_path,
+        class: "header-link #{'is-current' if request.path.start_with?('/admin/orders')}" %>
+
+  <%= link_to "在庫管理", admin_inventories_path,
+        class: "header-link #{'is-current' if request.path.start_with?('/admin/inventories')}" %>
+
+  <%= link_to "ゴミ箱", admin_trash_products_path,
+        class: "header-link #{'is-current' if request.path.start_with?('/admin/trash/products')}" %>
 
   <%= button_to "Logout", destroy_admin_user_session_path, method: :delete, class: "header-link" %>
 </nav>

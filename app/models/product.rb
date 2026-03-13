@@ -3,7 +3,11 @@ class Product < ApplicationRecord
 
   accepts_nested_attributes_for :product_variants,
     allow_destroy: false,
-    reject_if: :all_blank
+    reject_if: ->(attrs) {
+      attrs["color"].blank? &&
+      attrs["size"].blank? &&
+      attrs["sku"].blank?
+    }
 
   has_one_attached :main_image
 

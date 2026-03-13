@@ -27,7 +27,7 @@
           </span>
         </dd>
         <dt>カテゴリ</dt><dd><%= @product.category %></dd>
-        <dt>価格</dt><dd>¥<%= @product.price_cents %></dd>
+        <dt>価格</dt><dd>¥<%= number_with_delimiter(@product.price_cents) %></dd>
         <dt>更新日時</dt><dd><%= l(@product.updated_at) %></dd>
       </dl>
 
@@ -56,7 +56,7 @@
                 <td><%= v.sku %></td>
                 <td>
                   <span class="a-pill <%= v.deleted? ? "a-pill--off" : "a-pill--on" %>">
-                    <%= v.deleted? ? "deleted" : "active" %>
+                    <%= v.deleted? ? "削除中" : "有効" %>
                   </span>
                 </td>
               </tr>
