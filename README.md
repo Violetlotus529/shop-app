@@ -825,3 +825,14 @@ erDiagram
   ORDERS ||--o{ ORDER_ITEMS : includes
   PRODUCT_VARIANTS ||--o{ ORDER_ITEMS : ordered_as
 ```
+
+## 8. Demo Payment (Stripe Test)
+
+This application uses Stripe in test mode.
+
+Use the following test card when checking out.
+
+Card number: 4242 4242 4242 4242
+Expiration date: Any future date
+CVC: Any 3 digits
+ZIP: Any value
