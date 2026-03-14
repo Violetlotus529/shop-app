@@ -16,6 +16,17 @@
   - Password: password
 - [Figma - VioletLotus Admin](https://www.figma.com/design/FyMtVPAcQc0eArPW6eT7cV/EC%E3%82%B5%E3%82%A4%E3%83%88?node-id=0-1&t=r2dhyuTUfpk2hdAk-1)
 
+### Demo Payment (Stripe Test)
+
+This application uses Stripe in test mode.
+
+Use the following test card when checking out.
+
+- Card number: 4242 4242 4242 4242
+- Expiration date: Any future date
+- CVC: Any 3 digits
+- ZIP: Any value
+
 ---
 
 ## 2. Design
@@ -827,14 +838,3 @@ erDiagram
   ORDERS ||--o{ ORDER_ITEMS : includes
   PRODUCT_VARIANTS ||--o{ ORDER_ITEMS : ordered_as
 ```
-
-## 8. Demo Payment (Stripe Test)
-
-This application uses Stripe in test mode.
-
-Use the following test card when checking out.
-
-- Card number: 4242 4242 4242 4242
-- Expiration date: Any future date
-- CVC: Any 3 digits
-- ZIP: Any value
