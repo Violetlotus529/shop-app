@@ -30,8 +30,6 @@ gem "devise"
 
 gem "stripe"
 
-gem "aws-sdk-s3", require: false
-
 gem "cloudinary"
 gem "activestorage-cloudinary-service"
 
