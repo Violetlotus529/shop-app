@@ -6,7 +6,7 @@
 - This project is an **EC application with an admin panel**, designed for a single apparel store.
 - The system focuses on **back-office operations**, including product management, inventory management, and order management.
 - Both **guest checkout** and **registered user checkout** are supported.
-- Demo: https://violetlotus-ec.onrender.com
+- Demo: (https://violetlotus-ec.onrender.com)
 - [Figma - VioletLotus Admin](https://www.figma.com/design/FyMtVPAcQc0eArPW6eT7cV/EC%E3%82%B5%E3%82%A4%E3%83%88?node-id=0-1&t=r2dhyuTUfpk2hdAk-1)
 
 ### Admin Demo Login
