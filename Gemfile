@@ -30,6 +30,11 @@ gem "devise"
 
 gem "stripe"
 
+gem "aws-sdk-s3", require: false
+
+gem "cloudinary"
+gem "activestorage-cloudinary-service"
+
 # Use Redis adapter to run Action Cable in production
 # gem "redis", ">= 4.0.1"
 
@@ -75,3 +80,5 @@ group :development do
   gem "letter_opener"
   gem "letter_opener_web"
 end
+
+
